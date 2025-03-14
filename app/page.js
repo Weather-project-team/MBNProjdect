@@ -8,7 +8,7 @@ export default function Home() {
       <br />
       <Link href="/boss">보스 페이지</Link> 
       <br />
-      <Link href="/login">로긘</Link>
+      <Link href="auth/signin">로긘</Link>
     </div>
   );
 }
