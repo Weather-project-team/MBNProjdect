@@ -1,10 +1,10 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-// import connectDB from "@/lib/mongodb";
-// import User from "@/models/User";
-// import bcrypt from "bcryptjs";
+import { connectDB } from "@/lib/mongodb";
+import User from "@/models/User";
+import bcrypt from "bcryptjs";
 
-export const authOptions = {
+export const { auth, handlers } = NextAuth({
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -12,38 +12,21 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-
       async authorize(credentials) {
-        // 📌 DB 없이 테스트용 하드코딩된 사용자 정보
-        const user = { id: "123", email: "test@example.com", password: "1234" };
+        await connectDB(); // ✅ MongoDB 연결
 
-        if (credentials.email !== user.email || credentials.password !== user.password) {
-          throw new Error("이메일 또는 비밀번호가 틀렸습니다.");
-        }
+        // ✅ MongoDB에서 유저 찾기
+        const user = await User.findOne({ email: credentials?.email });
+        if (!user) throw new Error("이메일이 존재하지 않습니다.");
 
-        return { id: user.id, email: user.email };
+        // ✅ 비밀번호 검증
+        const isValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isValid) throw new Error("비밀번호가 틀렸습니다.");
+
+        return { id: user._id.toString(), email: user.email };
       },
     }),
   ],
-
-//       async authorize(credentials) {
-//         await connectDB();
-//         const user = await User.findOne({ email: credentials.email });
-
-//         if (!user) {
-//           throw new Error("이메일이 존재하지 않습니다.");
-//         }
-
-//         const isValid = await bcrypt.compare(credentials.password, user.password);
-//         if (!isValid) {
-//           throw new Error("비밀번호가 틀려먹었습니다.");
-//         }
-
-//         return { id: user._id.toString(), email: user.email };
-//       },
-//     }),
-//   ],
-
   session: { strategy: "jwt" },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
@@ -62,8 +45,7 @@ export const authOptions = {
       return session;
     },
   },
+});
 
-};
-
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export const GET = handlers.GET;
+export const POST = handlers.POST;
