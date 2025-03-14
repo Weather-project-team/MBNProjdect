@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from 'next/navigation'; // Next.js 15
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -21,7 +21,7 @@ export default function LoginForm() {
 
     if (!result?.error) {
       alert("로그인 성공!");
-      router.push("/dashboard"); // Next.js 라우터로 페이지 이동
+      router.push("/"); // Next.js 라우터로 페이지 이동
     } else {
       alert("로그인 실패: " + result.error);
     }
