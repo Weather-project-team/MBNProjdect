@@ -8,14 +8,14 @@ import { v4 as uuidv4 } from "uuid"; // ✅ UUID 라이브러리 사용
 export default function BossPage() {
   const [timers, setTimers] = useState([]);
 
-  // ✅ 타이머 추가 (killTime은 초기 상태에서 null)
+  // ✅ 타이머 추가 (killTime 변환 로직 수정)
   const addTimer = (form) => {
     let nextSpawnTime = form.nextSpawnTime || null;
 
     const newTimer = {
       id: uuidv4(),
       ...form,
-      killTime: form.killTime || null, // ✅ killTime을 form에서 가져오도록 변경
+      killTime: form.killTime ? new Date(form.killTime).toISOString() : null, // ✅ KillTime 변환
       nextSpawnTime: nextSpawnTime,
       respawnTimeHours: form.respawnTimeHours || "0",
       respawnTimeMinutes: form.respawnTimeMinutes || "0",
@@ -76,13 +76,22 @@ export default function BossPage() {
   // ✅ 타이머 업데이트 (ID 기반)
   const updateTimer = (timerId, field, value) => {
     setTimers((prevTimers) =>
-      prevTimers.map((timer) =>
-        timer.id === timerId ? { ...timer, [field]: value } : timer
-      )
+        prevTimers.map((timer) => {
+            if (timer.id !== timerId) return timer;
+
+            // ✅ 젠 완료 상태가 되어도 삭제하지 않고 그대로 유지
+            if (field === "nextSpawnTime" && value === "젠 완료") {
+                console.log(`⚠️ 보스 ${timer.bossName} 젠 완료! 하지만 타이머 유지`);
+                return { ...timer, nextSpawnTime: "젠 완료" }; // 유지하되, 표시만 변경
+            }
+
+            return { ...timer, [field]: value };
+        })
     );
 
     console.log(`🟢 업데이트됨 → ID: ${timerId}, 필드: ${field}, 값: ${value}`);
-  };
+};
+
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
