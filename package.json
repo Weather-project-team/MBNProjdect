@@ -9,13 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+<<<<<<< HEAD
+=======
+    "bcryptjs": "^3.0.2",
+>>>>>>> 9e125a9ea5e70cd007aa282fefe38e3db34dab34
     "express": "^4.21.2",
     "mongodb": "^6.14.2",
     "mongoose": "^8.12.1",
     "next": "15.2.1",
     "next-auth": "^5.0.0-beta.25",
     "react": "^19.0.0",
+<<<<<<< HEAD
     "react-dom": "^19.0.0"
+=======
+    "react-dom": "^19.0.0",
+    "uuid": "^11.1.0"
+>>>>>>> 9e125a9ea5e70cd007aa282fefe38e3db34dab34
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
