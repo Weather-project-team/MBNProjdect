@@ -1,15 +1,11 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
 
 export const { auth, handlers } = NextAuth({
   providers: [
-    GoogleProvider({
-      // clientId: process.env.GOOGLE_CLIENT_ID!,
-      // clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -17,17 +13,15 @@ export const { auth, handlers } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        await connectDB();
+        await connectDB(); // ✅ MongoDB 연결
+
+        // ✅ MongoDB에서 유저 찾기
         const user = await User.findOne({ email: credentials?.email });
+        if (!user) throw new Error("이메일이 존재하지 않습니다.");
 
-        if (!user) {
-          throw new Error("이메일이 존재하지 않습니다.");
-        }
-
+        // ✅ 비밀번호 검증
         const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) {
-          throw new Error("비밀번호가 틀렸습니다.");
-        }
+        if (!isValid) throw new Error("비밀번호가 틀렸습니다.");
 
         return { id: user._id.toString(), email: user.email };
       },
