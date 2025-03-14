@@ -12,7 +12,6 @@ export default function LoginForm() {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const result = await signIn("credentials", {
       redirect: false, // 페이지 리디렉션 방지 (Next.js에서 필요)
       email,
@@ -44,6 +43,8 @@ export default function LoginForm() {
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
           <button type="submit">로그인</button>
+
+          <button onClick={() => signIn("google")}>구글 로그인</button>
         </form>
       )}
     </div>
