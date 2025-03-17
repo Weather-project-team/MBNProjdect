@@ -1,3 +1,5 @@
+import GameForm from "@/components/games/GameForm";
+
 export default function page() {
   return (
     <div>
@@ -5,11 +7,7 @@ export default function page() {
       <div>카테고리</div>
 
       <div>
-        <form>
-          <input placeholder="제목" />
-          <input placeholder="본문" />
-          <button>생성</button>
-        </form>
+        <GameForm />
       </div>
     </div>
   );
