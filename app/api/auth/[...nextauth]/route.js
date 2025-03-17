@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { connectDB } from "@/lib/mongodb";
-import User from "@/models/User";
+import { connectDB } from "../../../../lib/mongoose";
+import User from "../../../../models/User";
 import bcrypt from "bcryptjs";
 
 export const { auth, handlers } = NextAuth({
@@ -52,3 +52,11 @@ export const { auth, handlers } = NextAuth({
 
 export const GET = handlers.GET;
 export const POST = handlers.POST;
+
+// 참고 : NextAuth는 app/api/auth/[...nextauth]/route.js를 보고 자동으로 다음 API들을 생성해줌
+//      API 엔드포인트	   ||       역할
+// POST /api/auth/signin	||  로그인 (signIn("credentials"))
+// POST /api/auth/signout ||  로그아웃 (signOut())
+// GET /api/auth/session	||  현재 로그인된 유저 정보 가져오기
+
+// nextAuth 횐갑은 없는듯

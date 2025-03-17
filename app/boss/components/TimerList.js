@@ -2,11 +2,16 @@ import TimerItem from "./TimerItem";
 
 export default function TimerList({ timers, handleKill, toggleEditMode, removeTimer, updateTimer }) {
   // ✅ "젠 완료"가 아닌 타이머만 정상적으로 정렬 (남은 시간 짧은 순)
-  const sortedTimers = [...timers].filter(timer => timer.nextSpawnTime !== "젠 완료").sort((a, b) => {
-    const timeA = a.nextSpawnTime ? new Date(a.nextSpawnTime).getTime() : Infinity;
-    const timeB = b.nextSpawnTime ? new Date(b.nextSpawnTime).getTime() : Infinity;
+  const sortedTimers = [...timers].sort((a, b) => {
+    const timeA = a.nextSpawnTime && a.nextSpawnTime !== "젠 완료" 
+      ? new Date(a.nextSpawnTime).getTime() 
+      : Infinity; // 젠 완료된 타이머는 가장 마지막으로 정렬
+    const timeB = b.nextSpawnTime && b.nextSpawnTime !== "젠 완료" 
+      ? new Date(b.nextSpawnTime).getTime() 
+      : Infinity;
     return timeA - timeB;
   });
+  
 
   return (
     <div className="mt-6">
