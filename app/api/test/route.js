@@ -1,4 +1,4 @@
-import { connectDB } from "@/lib/mongodb";
+import { connectDB } from "../../../lib/mongoose";
 import { NextResponse } from "next/server";
 
 export async function GET() {

@@ -25,7 +25,7 @@ export default function TimerForm({ addTimer }) {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!form.bossName || (!form.respawnTimeHours && !form.respawnTimeMinutes)) {
       alert("⚠️ 보스 이름과 리젠 시간(시간 또는 분) 중 하나는 필수 입력 항목입니다!");
       return;
@@ -43,7 +43,7 @@ export default function TimerForm({ addTimer }) {
       }
   
       const today = new Date();
-      const formattedDate = today.toISOString().split("T")[0]; // YYYY-MM-DD 형식
+      const formattedDate = today.toISOString().split("T")[0];
       const [hour, minute] = form.manualKillTime.split(":").map(val => parseInt(val, 10));
   
       killTime = new Date(`${formattedDate}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
@@ -64,34 +64,46 @@ export default function TimerForm({ addTimer }) {
       nextSpawnTime = new Date(killTime.getTime() + respawnTimeMs).toISOString();
     }
   
-    // ✅ newTimer 객체 생성
+    // ✅ MongoDB에 저장할 타이머 객체 생성
     const newTimer = {
-      id: uuidv4(),
-      ...form,
-      killTime: killTime ? killTime.toISOString() : null, // ✅ 수기 입력한 처치 시간 반영
-      nextSpawnTime: nextSpawnTime,
+      gameName: form.gameName,
+      bossName: form.bossName,
+      location: form.location,
       respawnTimeHours: form.respawnTimeHours || "0",
       respawnTimeMinutes: form.respawnTimeMinutes || "0",
-      isEditing: false,
+      killTime: killTime ? killTime.toISOString() : null,
+      nextSpawnTime,
     };
   
-    // ✅ 디버깅 로그 추가
-    console.log("🛠 생성된 타이머 객체 (최종):", newTimer);
+    try {
+      // ✅ MongoDB에 저장 요청
+      const response = await fetch("/api/timers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTimer),
+      });
   
-    addTimer(newTimer);
-    alert("✅ 성공적으로 생성되었습니다!");
-  
-    setForm({
-      gameName: "",
-      bossName: "",
-      respawnTimeHours: "",
-      respawnTimeMinutes: "",
-      location: "",
-      manualKillTime: "",
-    });
-  
-    setVisibleFields((prevFields) => ({ ...prevFields }));
+      const data = await response.json();
+      if (response.ok) {
+        alert("✅ 타이머가 성공적으로 저장되었습니다!");
+        addTimer(data.timer); // ✅ MongoDB에 저장된 데이터를 추가
+        setForm({
+          gameName: "",
+          bossName: "",
+          respawnTimeHours: "",
+          respawnTimeMinutes: "",
+          location: "",
+          manualKillTime: "",
+        });
+      } else {
+        alert(`❌ 오류 발생: ${data.error}`);
+      }
+    } catch (error) {
+      console.error("❌ 서버 요청 실패:", error);
+      alert("서버 요청에 실패했습니다.");
+    }
   };
+  
   
   
   
@@ -172,6 +184,7 @@ export default function TimerForm({ addTimer }) {
         {!visibleFields.bossName && <button onClick={() => addField("bossName")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 이름</button>}
         {!visibleFields.respawnTimeHours && <button onClick={() => addField("respawnTimeHours")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 젠 시간 (시간)</button>}
         {!visibleFields.respawnTimeMinutes && <button onClick={() => addField("respawnTimeMinutes")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 젠 시간 (분)</button>}
+        {!visibleFields.location && <button onClick={() => addField("location")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 위치</button>}
       </div>
 
       <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded w-full">젠 타이머 추가</button>
