@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { connectToDB } from "../../../../lib/mongoose";
-import User from "../../../../models/User";
+import { connectToDB } from "@/lib/mongoose";
+import User from "@/models/User";
 
 export async function GET(req) {
     const session = await auth(); // auth()를 직접 호출
