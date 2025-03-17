@@ -1,6 +1,6 @@
 import { connectDB } from "../../../lib/mongoose";
 import BossTimer from "../../../models/BossTimer";
-import { auth } from "@/app/api/auth/[...nextauth]/route"; 
+import { auth } from "@/app/auth";
 
 export async function POST(req) {
   try {

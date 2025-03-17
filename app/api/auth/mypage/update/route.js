@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
-import { connectToDB } from "../../../../../lib/mongoose";
-import User from "../../../../../models/User";
+import { connectToDB } from "@/lib/mongoose";
+import User from "@/models/User";
 
 export async function PATCH(req) {
     const session = await auth();
@@ -8,7 +8,7 @@ export async function PATCH(req) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { name, phone, address, imgURL } = await req.json();
+    const { name, phone, address } = await req.json();
     
     await connectToDB();
     const user = await User.findOne({ email: session.user.email });
@@ -21,7 +21,6 @@ export async function PATCH(req) {
     if (name) user.name = name;
     if (phone) user.phone = phone;
     if (address) user.address = address;
-    if (imgURL) user.imgURL = imgURL;
 
     await user.save();
 
