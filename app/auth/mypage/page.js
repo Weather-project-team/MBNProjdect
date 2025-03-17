@@ -9,8 +9,7 @@ export default function MyPage() {
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
-        address: "",
-        imgURL: ""
+        address: ""
     });
 
     useEffect(() => {
@@ -22,8 +21,7 @@ export default function MyPage() {
                     setFormData({
                         name: data.name || "",
                         phone: data.phone || "",
-                        address: data.address || "",
-                        imgURL: data.imgURL || ""
+                        address: data.address || ""
                     });
                 });
         }
@@ -86,16 +84,6 @@ export default function MyPage() {
                             type="text"
                             name="address"
                             value={formData.address}
-                            onChange={handleChange}
-                            className="w-full p-2 border rounded"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-gray-700">프로필 이미지 URL</label>
-                        <input
-                            type="text"
-                            name="imgURL"
-                            value={formData.imgURL}
                             onChange={handleChange}
                             className="w-full p-2 border rounded"
                         />
