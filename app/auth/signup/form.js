@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function SignupForm() {
   const [email, setEmail] = useState("");
@@ -120,6 +121,12 @@ export default function SignupForm() {
       {error && <p style={{ color: "red" }}>{error}</p>}
 
       <button type="submit">회원가입 하기</button>
+
+      <br/>
+      <br/>
+      <br/>
+      <p>이미 계정이 있으신가요?</p>
+      <Link href="/auth/signin">&lt; 로그인하러가기 &gt;</Link>
     </form>
   );
 }
