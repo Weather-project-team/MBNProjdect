@@ -31,7 +31,7 @@ export default function LoginForm() {
     <div>
       {session ? (
         <>
-          <p>환영합니다, {session.user.email}!</p>
+          <p>환영합니다, {session.user.name}님! ({session.user.email})</p>
           <button onClick={() => signOut()}>로그아웃</button>
         </>
       ) : (
