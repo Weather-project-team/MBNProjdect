@@ -21,7 +21,7 @@ export default function BossGuide() {
           <h3 className="font-bold text-lg">📌 사용 방법</h3>
           <ul className="list-disc ml-5">
             <li>+ 버튼을 눌러 보스 정보를 입력하세요.</li>
-            <li>보스 이름과 리젠 시간(예: 4시간)은 필수 입력입니다.</li>
+            <li>게임이름, 보스이름, 리젠 시간(예: 4시간)은 필수 입력입니다.</li>
             <li>처치 버튼을 누르면 현재 시간이 자동으로 저장됩니다.</li>
             <li>수기로 입력하고 싶다면 "+ 수기로 보스 처치 입력하기"를 사용하세요.</li>
           </ul>
