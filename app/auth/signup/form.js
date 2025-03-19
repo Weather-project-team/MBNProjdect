@@ -52,7 +52,10 @@ export default function SignupForm() {
       {/* 에러 메시지 출력 */}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <button type="submit">회원가입</button>
+      <br/>
+      <br/>
+      <br/>
+      <button type="submit">회원가입 하기</button>
     </form>
   );
 }
