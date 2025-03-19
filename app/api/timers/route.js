@@ -16,7 +16,7 @@ export async function POST(req) {
     const { gameName, bossName, location, respawnTimeHours, respawnTimeMinutes, killTime, nextSpawnTime } = data;
 
     if (!gameName || !bossName || (!respawnTimeHours && !respawnTimeMinutes)) {
-      return new Response(JSON.stringify({ error: "필수 입력값이 없습니다." }), { status: 400 });
+      return new Response(JSON.stringify({ error: "⚠️ 게임 이름, 보스 이름, 리젠 시간(시간 또는 분) 은 필수 입력 항목입니다!" }), { status: 400 });
     }
 
     // ✅ 타이머 저장

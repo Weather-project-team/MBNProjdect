@@ -26,84 +26,84 @@ export default function TimerForm({ addTimer }) {
   };
 
   const handleSubmit = async () => {
-    if (!form.bossName || (!form.respawnTimeHours && !form.respawnTimeMinutes)) {
-      alert("⚠️ 보스 이름과 리젠 시간(시간 또는 분) 중 하나는 필수 입력 항목입니다!");
+  if (!form.bossName || (!form.respawnTimeHours && !form.respawnTimeMinutes)) {
+    alert("⚠️ 게임 이름, 보스 이름, 리젠 시간(시간 또는 분) 은 필수 입력 항목입니다!");
+    return;
+  }
+
+  let killTime = null;
+  let nextSpawnTime = null;
+
+  // ✅ 수기 처치 시간이 입력된 경우
+  if (form.manualKillTime) {
+    const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+    if (!timeRegex.test(form.manualKillTime)) {
+      alert("처치 시간을 올바른 형식(예: 16:30)으로 입력해주세요.");
       return;
     }
-  
-    let killTime = null;
-    let nextSpawnTime = null;
-  
-    // ✅ 수기 처치 시간이 입력된 경우
-    if (form.manualKillTime) {
-      const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
-      if (!timeRegex.test(form.manualKillTime)) {
-        alert("처치 시간을 올바른 형식(예: 16:30)으로 입력해주세요.");
-        return;
-      }
-  
-      const today = new Date();
-      const formattedDate = today.toISOString().split("T")[0];
-      const [hour, minute] = form.manualKillTime.split(":").map(val => parseInt(val, 10));
-  
-      killTime = new Date(`${formattedDate}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
-  
-      if (isNaN(killTime.getTime())) {
-        alert("입력하신 처치 시간이 유효하지 않습니다.");
-        return;
-      }
-  
-      console.log("✅ 수기로 입력한 처치 시간:", killTime.toISOString());
-  
-      // ✅ 리젠 시간 변환 (시간 + 분)
-      const respawnTimeMs =
-        (parseInt(form.respawnTimeHours || 0, 10) * 60 * 60 * 1000) +
-        (parseInt(form.respawnTimeMinutes || 0, 10) * 60 * 1000);
-  
-      // ✅ 다음 젠 시간 계산
-      nextSpawnTime = new Date(killTime.getTime() + respawnTimeMs).toISOString();
+
+    const today = new Date();
+    const formattedDate = today.toISOString().split("T")[0];
+    const [hour, minute] = form.manualKillTime.split(":").map(val => parseInt(val, 10));
+
+    killTime = new Date(`${formattedDate}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
+
+    if (isNaN(killTime.getTime())) {
+      alert("입력하신 처치 시간이 유효하지 않습니다.");
+      return;
     }
-  
-    // ✅ MongoDB에 저장할 타이머 객체 생성
-    const newTimer = {
-      gameName: form.gameName,
-      bossName: form.bossName,
-      location: form.location,
-      respawnTimeHours: form.respawnTimeHours || "0",
-      respawnTimeMinutes: form.respawnTimeMinutes || "0",
-      killTime: killTime ? killTime.toISOString() : null,
-      nextSpawnTime,
-    };
-  
-    try {
-      // ✅ MongoDB에 저장 요청
-      const response = await fetch("/api/timers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newTimer),
-      });
-  
-      const data = await response.json();
-      if (response.ok) {
-        alert("✅ 타이머가 성공적으로 저장되었습니다!");
-        addTimer(data.timer); // ✅ MongoDB에 저장된 데이터를 추가
-        setForm({
-          gameName: "",
-          bossName: "",
-          respawnTimeHours: "",
-          respawnTimeMinutes: "",
-          location: "",
-          manualKillTime: "",
-        });
-      } else {
-        alert(`❌ 오류 발생: ${data.error}`);
-      }
-    } catch (error) {
-      console.error("❌ 서버 요청 실패:", error);
-      alert("서버 요청에 실패했습니다.");
-    }
+
+    console.log("✅ 수기로 입력한 처치 시간:", killTime.toISOString());
+
+    // ✅ 리젠 시간 변환 (시간 + 분)
+    const respawnTimeMs =
+      (parseInt(form.respawnTimeHours || 0, 10) * 60 * 60 * 1000) +
+      (parseInt(form.respawnTimeMinutes || 0, 10) * 60 * 1000);
+
+    // ✅ 다음 젠 시간 계산
+    nextSpawnTime = new Date(killTime.getTime() + respawnTimeMs).toISOString();
+  }
+
+  // ✅ MongoDB에 저장할 타이머 객체 생성
+  const newTimer = {
+    gameName: form.gameName,
+    bossName: form.bossName,
+    location: form.location,
+    respawnTimeHours: form.respawnTimeHours || "0",
+    respawnTimeMinutes: form.respawnTimeMinutes || "0",
+    killTime: killTime ? killTime.toISOString() : null,
+    nextSpawnTime,
   };
-  
+
+  try {
+    // ✅ MongoDB에 저장 요청
+    const response = await fetch("/api/timers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newTimer),
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      alert("✅ 타이머가 성공적으로 저장되었습니다!");
+      addTimer(data.timer); // ✅ MongoDB에 저장된 데이터를 추가
+      setForm({
+        gameName: "",
+        bossName: "",
+        respawnTimeHours: "",
+        respawnTimeMinutes: "",
+        location: "",
+        manualKillTime: "",
+      });
+    } else {
+      alert(`❌ 오류 발생: ${data.error}`);
+    }
+  } catch (error) {
+    console.error("❌ 서버 요청 실패:", error);
+    alert("서버 요청에 실패했습니다.");
+  }
+};
+
   
   
   
