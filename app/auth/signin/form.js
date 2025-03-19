@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { useRouter } from 'next/navigation'; // Next.js 15
+import Link from "next/link";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -43,9 +44,15 @@ export default function LoginForm() {
           <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
           <button type="submit">로그인</button>
-
-          <button onClick={() => signIn("google")}>구글 로그인</button>
+          <span>&emsp;&emsp;</span>
+          <button onClick={() => signIn("google")}>/ 구글로그인</button>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
+          <Link href="/auth/signup">회원가입은 여기를 클릭</Link>
         </form>
+        
       )}
     </div>
   );
