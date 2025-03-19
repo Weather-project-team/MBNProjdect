@@ -4,11 +4,6 @@ export default function Home() {
   return (
     <div className="grid grid-rows-[20px_1fr_20px] items-center">
       <h1 className="text-4xl font-bold">Hello, world!</h1>
-      <Link href="/game">게임 페이지</Link>
-      <br />
-      <Link href="/boss">보스 페이지</Link>
-      <br />
-      <Link href="auth/signin">로긘</Link>
     </div>
   );
 }
