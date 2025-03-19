@@ -2,18 +2,20 @@
 import { useState, useEffect } from "react";
 import TimerForm from "./components/TimerForm";
 import BossGuide from "./components/BossGuide";
-import GroupModal from "./components/GroupModal";
+import GroupModal from "./components/GroupModal/GroupModal";
+import EditModal from "./components/GroupModal/EditModal";
 
 export default function BossPage() {
   const [timers, setTimers] = useState([]);
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [groupedTimers, setGroupedTimers] = useState({});
+  const [editingTimer, setEditingTimer] = useState(null); // ✅ 수정 모달용 상태
 
   // ✅ 서버에서 유저의 타이머 불러오기
   useEffect(() => {
     const fetchTimers = async () => {
       try {
-        const res = await fetch("/api/timers", { method: "GET" });
+        const res = await fetch("/api/timers");
         const data = await res.json();
         if (res.ok) {
           console.log("✅ 서버에서 불러온 타이머:", data);
@@ -28,7 +30,7 @@ export default function BossPage() {
     fetchTimers();
   }, []);
 
-  // ✅ 그룹화 effect
+  // ✅ 그룹화 (게임명 기준)
   useEffect(() => {
     const groupMap = timers.reduce((groups, timer) => {
       const gameName = timer.gameName || "기타 게임";
@@ -41,14 +43,12 @@ export default function BossPage() {
 
   // ✅ 타이머 추가
   const addTimer = async (form) => {
-    let nextSpawnTime = form.nextSpawnTime || null;
     const newTimer = {
       ...form,
       killTime: form.killTime ? new Date(form.killTime).toISOString() : null,
-      nextSpawnTime,
+      nextSpawnTime: form.nextSpawnTime || null,
       respawnTimeHours: form.respawnTimeHours || "0",
       respawnTimeMinutes: form.respawnTimeMinutes || "0",
-      isEditing: false,
     };
 
     try {
@@ -69,16 +69,16 @@ export default function BossPage() {
     }
   };
 
-  // ✅ 처치 기능
+  // ✅ 보스 처치 처리
   const handleKill = async (timerId) => {
     const timer = timers.find((t) => t._id === timerId);
     if (!timer) return;
 
     const now = new Date();
-    const respawnTimeMs =
+    const respawnMs =
       (parseInt(timer.respawnTimeHours || 0) * 60 * 60 * 1000) +
       (parseInt(timer.respawnTimeMinutes || 0) * 60 * 1000);
-    const nextSpawnTime = new Date(now.getTime() + respawnTimeMs);
+    const nextSpawnTime = new Date(now.getTime() + respawnMs);
 
     try {
       const res = await fetch("/api/timers", {
@@ -102,15 +102,6 @@ export default function BossPage() {
     }
   };
 
-  // ✅ 수정 모드 전환
-  const toggleEditMode = (timerId) => {
-    setTimers((prev) =>
-      prev.map((timer) =>
-        timer._id === timerId ? { ...timer, isEditing: !timer.isEditing } : timer
-      )
-    );
-  };
-
   // ✅ 삭제
   const removeTimer = async (timerId) => {
     try {
@@ -121,14 +112,11 @@ export default function BossPage() {
       });
       if (res.ok) {
         console.log("✅ 삭제 성공");
-        // 타이머 삭제 후 필터링
         const updatedTimers = timers.filter((timer) => timer._id !== timerId);
         setTimers(updatedTimers);
-  
-        // ✅ 삭제 후 그룹이 비었는지 확인하고 모달 닫기
         const updatedGroup = updatedTimers.filter((timer) => timer.gameName === selectedGroup);
         if (updatedGroup.length === 0) {
-          console.log("✅ 그룹이 비어서 모달 닫음");
+          console.log("✅ 그룹이 비어 모달 닫음");
           setSelectedGroup(null);
         }
       }
@@ -136,7 +124,6 @@ export default function BossPage() {
       console.error("❌ 삭제 실패:", err);
     }
   };
-  
 
   // ✅ 상태 업데이트
   const updateTimer = (timerId, field, value) => {
@@ -144,16 +131,16 @@ export default function BossPage() {
       prev.map((timer) => {
         if (timer._id !== timerId) return timer;
         if (field === "nextSpawnTime" && value === "젠 완료") {
-          console.log(`⚠️ 보스 ${timer.bossName} 젠 완료!`);
+          console.log(`⚠️ ${timer.bossName} 젠 완료!`);
           return { ...timer, nextSpawnTime: "젠 완료" };
         }
         return { ...timer, [field]: value };
       })
     );
-    console.log(`🟢 업데이트됨 → ID: ${timerId}, ${field}: ${value}`);
+    console.log(`🟢 업데이트 → ID: ${timerId}, ${field}: ${value}`);
   };
 
-  // ✅ 수정 저장시 DB 반영
+  // ✅ 수정 저장(DB 반영)
   const saveEdit = async (timerId, newData) => {
     try {
       const res = await fetch("/api/timers", {
@@ -172,39 +159,68 @@ export default function BossPage() {
     }
   };
 
+  // ✅ 수정 모달 열기
+  const openEditModal = (timer) => {
+    setEditingTimer(timer);
+  };
+
   return (
-    <div className="flex">
-      {/* 왼쪽 메인 */}
-      <div className="p-6 max-w-3xl w-3/4">
+    <div className="flex justify-center bg-gray-50 min-h-screen">
+      {/* 좌측 광고 영역 */}
+      <div className="w-[200px] hidden lg:block p-4">
+        <div className="bg-gray-300 h-[600px] rounded">광고 자리</div>
+      </div>
+
+      {/* 메인 컨텐츠 */}
+      <div className="w-full max-w-6xl p-6">
         <BossGuide />
-        <TimerForm addTimer={addTimer} />
-        {/* ✅ 더 이상 TimerList는 필요 없음 */}
-      </div>
 
-      {/* 오른쪽 게임 그룹 목록 */}
-      <div className="w-1/4 p-4 bg-gray-100 rounded shadow">
-        <h2 className="text-lg font-bold mb-4">게임 그룹</h2>
-        {Object.keys(groupedTimers).map((game) => (
-          <div
-            key={game}
-            className="cursor-pointer p-2 bg-white rounded mb-2 shadow hover:bg-blue-100"
-            onClick={() => setSelectedGroup(game)}
-          >
-            {game}
+        {/* 타이머 생성 폼과 그룹 */}
+        <div className="flex gap-6 mt-6">
+          <div className="flex-[0.7] bg-white p-6 rounded shadow">
+            <TimerForm addTimer={addTimer} />
           </div>
-        ))}
+
+          {/* 게임 그룹 리스트 */}
+          <div className="flex-[0.3] bg-gray-100 p-4 rounded shadow h-fit">
+            <h2 className="text-lg font-bold mb-4">게임 그룹</h2>
+            {Object.keys(groupedTimers).map((game) => (
+              <div
+                key={game}
+                className="cursor-pointer p-2 bg-white rounded mb-2 shadow hover:bg-blue-100"
+                onClick={() => setSelectedGroup(game)}
+              >
+                {game}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* ✅ 그룹 클릭 시 모달 */}
+      {/* 우측 광고 영역 */}
+      <div className="w-[200px] hidden lg:block p-4">
+        <div className="bg-gray-300 h-[600px] rounded">광고 자리</div>
+      </div>
+
+      {/* 그룹 클릭 시 모달 */}
       {selectedGroup && (
         <GroupModal
           groupName={selectedGroup}
           timers={groupedTimers[selectedGroup]}
           onClose={() => setSelectedGroup(null)}
           handleKill={handleKill}
-          toggleEditMode={toggleEditMode}
           removeTimer={removeTimer}
           updateTimer={updateTimer}
+          saveEdit={saveEdit}
+          onEdit={openEditModal}  // ✅ 수정 버튼 누르면 모달 열림
+        />
+      )}
+
+      {/* 수정 모달 */}
+      {editingTimer && (
+        <EditModal
+          timer={editingTimer}
+          onClose={() => setEditingTimer(null)}
           saveEdit={saveEdit}
         />
       )}
