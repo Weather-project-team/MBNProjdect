@@ -1,5 +1,5 @@
-import { auth } from "@/auth";
-import { connectToDB } from "@/lib/mongoose";
+import { auth } from "@/app/auth";
+import { connectDB } from "@/lib/mongoose";
 import User from "@/models/User";
 
 export async function GET(req) {
@@ -8,7 +8,7 @@ export async function GET(req) {
         return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectToDB();
+    await connectDB();
     const user = await User.findOne({ email: session.user.email }).select("-password");
 
     return Response.json(user);

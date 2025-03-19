@@ -1,8 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
 import Providers from "./Providers";
-import Link from "next/link";
+import NavBar from "@/components/NavBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,24 +21,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <nav className="w-full h-[150px] bg-gray-400">
-          <ul>
-            <li>
-              <Link href="/game">게임 페이지</Link>
-            </li>
-            <li>
-              <Link href="/boss">보스 페이지</Link>
-            </li>
-
-            <li>
-              <Link href="auth/signin">로긘</Link>
-            </li>
-          </ul>
-        </nav>
-        <Providers>{children}</Providers>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <Providers>
+          <NavBar />
+          {children}
+        </Providers>
       </body>
     </html>
   );
