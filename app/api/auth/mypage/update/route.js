@@ -1,28 +1,26 @@
-import { auth } from "@/auth";
-import { connectToDB } from "@/lib/mongoose";
+import { auth } from "@/app/auth";
+import { connectDB } from "@/lib/mongoose";
 import User from "@/models/User";
+import { NextResponse } from "next/server";
 
 export async function PATCH(req) {
-    const session = await auth();
-    if (!session || !session.user) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  await connectDB();
+  const session = await auth();
 
-    const { name, phone, address } = await req.json();
-    
-    await connectToDB();
-    const user = await User.findOne({ email: session.user.email });
+  if (!session) {
+    return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
+  }
 
-    if (!user) {
-        return Response.json({ error: "User not found" }, { status: 404 });
-    }
+  const { name } = await req.json();
+  const user = await User.findOneAndUpdate(
+    { email: session.user.email },
+    { name },
+    { new: true }
+  ).select("-password");
 
-    // 변경된 값이 있을 때만 업데이트
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (address) user.address = address;
+  if (!user) {
+    return NextResponse.json({ error: "사용자 업데이트 실패" }, { status: 500 });
+  }
 
-    await user.save();
-
-    return Response.json({ message: "User updated successfully", user });
+  return NextResponse.json({ user });
 }
