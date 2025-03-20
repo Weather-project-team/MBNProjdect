@@ -29,14 +29,7 @@ export default function LoginForm() {
 
   return (
     <div>
-      {session ? (
-        <>
-          <p>환영합니다, {session.user.email}!</p>
-          <button onClick={() => signOut()}>로그아웃</button>
-        </>
-      ) : (
-        <form onSubmit={handleSubmit}>
-          <h2>로그인</h2>
+      <form onSubmit={handleSubmit}>
           <label>Email:</label>
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
 
@@ -52,8 +45,6 @@ export default function LoginForm() {
           <br/>
           <Link href="/auth/signup">회원가입은 여기를 클릭</Link>
         </form>
-        
-      )}
     </div>
   );
 }

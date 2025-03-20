@@ -23,7 +23,7 @@ export const { auth, handlers } = NextAuth({
         const isValid = await bcrypt.compare(credentials.password, user.password);
         if (!isValid) throw new Error("비밀번호가 틀렸습니다.");
 
-        return { id: user._id.toString(), email: user.email };
+        return { id: user._id.toString(), email: user.email, name: user.name };
       },
     }),
   ],
@@ -34,6 +34,7 @@ export const { auth, handlers } = NextAuth({
       if (user) {
         token.id = user.id;
         token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
@@ -41,6 +42,7 @@ export const { auth, handlers } = NextAuth({
       if (token) {
         session.user.id = token.id;
         session.user.email = token.email;
+        session.user.name = token.name;
       }
       return session;
     },
