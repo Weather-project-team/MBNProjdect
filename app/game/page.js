@@ -22,7 +22,7 @@ export default function GamePage() {
         </div>
       </div>
 
-      <div className="w-[70%] h-auto ml-18">
+      <div className="w-[70%] h-auto ml-18 mr-18">
         <h1 className="font-bold text-2xl">선택한 게임</h1>
         <div
           className="w-full h-10 bg-gray-400
@@ -46,6 +46,8 @@ export default function GamePage() {
           </Link>
         </div>
       </div>
+
+      <div className="w-[200px] bg-gray-400 h-[200px] rounded-lg">회원정보</div>
     </div>
   );
 }

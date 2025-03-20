@@ -25,7 +25,14 @@ export default function GameList() {
     };
     getList();
   }, []);
-  console.log(games);
+
+  if (games.length === 0) {
+    return (
+      <div>
+        <h1>게시글이 존재하지 않습니다.</h1>
+      </div>
+    );
+  }
   return (
     <div>
       <ul>
