@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { SessionContext } from "@/components/SessionProvider";
 
 export default function MyPage() {
-  const { data: session, status } = useSession();
+  const session = useContext(SessionContext);
   const [name, setName] = useState(session?.user?.name || "");
   const [isEditing, setIsEditing] = useState(false); // ✅ 수정 모드 상태 추가
 
@@ -38,8 +38,7 @@ export default function MyPage() {
     }
   };
 
-  if (status === "loading") return <p>Loading...</p>;
-  if (!session) return <p>로그인이 필요합니다.</p>;
+  if (!session) return <p className="text-center text-gray-600">로그인이 필요합니다.</p>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-lg rounded-lg">
