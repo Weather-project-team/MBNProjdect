@@ -13,15 +13,20 @@ export default function BossPage() {
   const [groupedTimers, setGroupedTimers] = useState({});
   const [editingTimer, setEditingTimer] = useState(null);
   const [filteredTimers, setFilteredTimers] = useState([]);
-  const [searchResult, setSearchResult] = useState(null); // ✅ 클릭된 검색 결과용
+  const [searchResult, setSearchResult] = useState(null); 
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ✅ 서버에서 타이머 가져오기 (중복 방지)
   const fetchTimers = async () => {
     try {
-      const res = await fetch("/api/timers");
+      const res = await fetch("/api/timers", { cache: "no-store" });
       const data = await res.json();
-      if (res.ok) setTimers(data);
-      else console.error("❌ 타이머 불러오기 실패:", data.error);
+      if (res.ok) {
+        console.log("✅ [fetchTimers] 서버에서 가져온 타이머:", data);
+        setTimers(data);
+      } else {
+        console.error("❌ 타이머 불러오기 실패:", data.error);
+      }
     } catch (err) {
       console.error("❌ 서버 요청 오류:", err);
     }
@@ -44,14 +49,14 @@ export default function BossPage() {
         return timer;
       });
 
-      // ✅ 젠 완료 제외하고 nextSpawnTime 기준 정렬
       const sorted = [...updatedTimers].sort((a, b) => {
         const aTime = (a.nextSpawnTime && a.nextSpawnTime !== "젠 완료") ? new Date(a.nextSpawnTime).getTime() : Infinity;
         const bTime = (b.nextSpawnTime && b.nextSpawnTime !== "젠 완료") ? new Date(b.nextSpawnTime).getTime() : Infinity;
         return aTime - bTime;
       });
+
       setTimers(sorted);
-    }, 10000); // 10초마다 체크 및 정렬
+    }, 10000);
 
     return () => clearInterval(interval);
   }, [timers]);
@@ -69,15 +74,27 @@ export default function BossPage() {
 
   // ✅ 추가
   const addTimer = async (form) => {
+    if (isSubmitting) return;  // ✅ 중복 호출 방지
+    setIsSubmitting(true);
+  
     try {
       const res = await fetch("/api/timers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (res.ok) await fetchTimers();
+  
+      const data = await res.json();
+      if (res.ok) {
+        console.log("✅ DB 저장 성공");
+        await fetchTimers();  // ✅ 저장 성공 후만 새로고침
+      } else {
+        console.error("❌ DB 저장 실패:", data.error);
+      }
     } catch (err) {
-      console.error("❌ 저장 실패:", err);
+      console.error("❌ 저장 요청 실패:", err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -115,9 +132,8 @@ export default function BossPage() {
         body: JSON.stringify({ timerId }),
       });
       if (res.ok) {
+        console.log("✅ 삭제 성공, 다시 fetchTimers");
         await fetchTimers();
-        const updatedGroup = timers.filter((timer) => timer._id !== timerId && timer.gameName === selectedGroup);
-        if (updatedGroup.length === 0) setSelectedGroup(null);
       }
     } catch (err) {
       console.error("❌ 삭제 실패:", err);
@@ -141,6 +157,16 @@ export default function BossPage() {
   // ✅ 수정 모달 열기
   const openEditModal = (timer) => { setEditingTimer(timer); };
 
+  // ✅ 선택 그룹 눌렀을 때 콘솔 확인
+  useEffect(() => {
+    if (selectedGroup) {
+      const filtered = timers.filter(timer => 
+        timer.gameName && 
+        timer.gameName.trim().toLowerCase() === selectedGroup.trim().toLowerCase()
+      )      
+    }
+  }, [selectedGroup, timers]);
+
   return (
     <div className="flex justify-center bg-gray-50 min-h-screen">
       {/* 좌측 광고 */}
@@ -159,7 +185,6 @@ export default function BossPage() {
         <div className="flex gap-6 mt-6">
           <div className="flex-[0.7] bg-white p-6 rounded shadow">
             <TimerForm addTimer={addTimer} />
-            
             {/* ✅ 검색 결과 영역 */}
             <div className="mt-6">
               {searchResult ? (
@@ -171,29 +196,29 @@ export default function BossPage() {
                     saveEdit={saveEdit}
                     onEdit={openEditModal}
                   />
-                   <button
-                  className="mt-4 bg-gray-300 text-black px-4 py-2 rounded"
-                  onClick={() => setSearchResult(null)}
-                >
-                  🔙 뒤로가기
-                </button>
-              </>
-            ) : filteredTimers.length > 0 ? (
-              <>
-                {filteredTimers.map((timer) => (
-                  <div
-                    key={timer._id}
-                    className="p-2 border rounded mb-2 cursor-pointer hover:bg-gray-100"
-                    onClick={() => setSearchResult(timer)}
+                  <button
+                    className="mt-4 bg-gray-300 text-black px-4 py-2 rounded"
+                    onClick={() => setSearchResult(null)}
                   >
-                    {timer.bossName} - {timer.gameName}
-                  </div>
-                ))}
-              </>
-            ) : (
-              <p className="mt-4 text-gray-500">검색 결과가 없습니다.</p>
-            )}
-          </div>
+                    🔙 뒤로가기
+                  </button>
+                </>
+              ) : filteredTimers.length > 0 ? (
+                <>
+                  {filteredTimers.map((timer) => (
+                    <div
+                      key={timer._id}
+                      className="p-2 border rounded mb-2 cursor-pointer hover:bg-gray-100"
+                      onClick={() => setSearchResult(timer)}
+                    >
+                      {timer.bossName} - {timer.gameName}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p className="mt-4 text-gray-500">검색 결과가 없습니다.</p>
+              )}
+            </div>
           </div>
 
           {/* 게임 그룹 */}
@@ -219,16 +244,19 @@ export default function BossPage() {
 
       {/* 그룹 모달 */}
       {selectedGroup && (
-        <GroupModal
-          groupName={selectedGroup}
-          timers={groupedTimers[selectedGroup]}
-          onClose={() => setSelectedGroup(null)}
-          handleKill={handleKill}
-          removeTimer={removeTimer}
-          saveEdit={saveEdit}
-          onEdit={openEditModal}
-        />
-      )}
+  <GroupModal
+    key={selectedGroup}
+    groupName={selectedGroup}
+    allTimers={timers}  
+    onClose={() => setSelectedGroup(null)}
+    handleKill={handleKill}
+    removeTimer={removeTimer}
+    saveEdit={saveEdit}
+    onEdit={openEditModal}
+  />
+)}
+
+
 
       {/* 수정 모달 */}
       {editingTimer && (
