@@ -16,9 +16,12 @@ export default function GroupTimerCard({
     return `${month}.${day} ${hours}:${minutes}`;
   };
 
-  const now = new Date().getTime();
-  const nextSpawn = timer.nextSpawnTime ? new Date(timer.nextSpawnTime).getTime() : null;
-  const timeRemainingMs = nextSpawn ? nextSpawn - now : null;
+      const now = new Date().getTime();
+      const nextSpawn = (timer.nextSpawnTime && timer.nextSpawnTime !== '젠 완료')
+      ? new Date(timer.nextSpawnTime).getTime()
+      : null;
+      const timeRemainingMs = nextSpawn ? nextSpawn - now : null;
+
 
   return (
     <div className="p-3 bg-white rounded-lg shadow border w-[220px] h-[210px] flex flex-col justify-between text-sm">
@@ -33,10 +36,9 @@ export default function GroupTimerCard({
         {timer.status === "젠 완료" && (
           <p className="text-red-500 font-bold mt-1">⚠️ 젠 완료!</p>
         )}
-        {timeRemainingMs <= 300000 && timeRemainingMs > 0 && (
-          <p className="text-red-500 font-bold">⚠️ 곧 등장!</p>
-        )}
-      </div>
+        {timeRemainingMs !== null && timeRemainingMs <= 300000 && timeRemainingMs > 0 && (
+        <p className="text-red-500 font-bold">⚠️ 곧 등장!</p>)}
+        </div>
 
       <div className="flex justify-between mt-3">
         {/* ✅ 처치 버튼 */}
