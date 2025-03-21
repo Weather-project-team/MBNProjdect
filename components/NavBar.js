@@ -21,14 +21,16 @@ export default function NavBar() {
             <Link href="/auth/mypage">마이페이지</Link>
             <button 
               onClick={() => signOut()} 
-              className="bg-red-500 text-white px-4 py-2 rounded">
+              className="bg-red-500 text-white px-4 py-2 rounded cursor-pointer">
               로그아웃
             </button>
           </>
         ) : (
-          <Link href="/auth/signin" className="bg-blue-500 text-white px-4 py-2 rounded">
+          <>
+          <Link href="/auth/signin" className="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer">
             로그인
           </Link>
+        </>
         )}
       </div>
     </nav>
