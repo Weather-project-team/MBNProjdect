@@ -1,31 +1,10 @@
-"use client";
+import { getGamesList } from "@/lib/db";
 
-import formatDate from "@/lib/formatDate";
+import formatDate from "@/utils/formatDate";
 
-import { useEffect, useState } from "react";
-
-export default function GameList() {
-  const [games, setGames] = useState([]);
-  useEffect(() => {
-    const getList = async () => {
-      try {
-        const response = await fetch("/api/game", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setGames(data.data);
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    getList();
-  }, []);
-
+export default async function GameList() {
+  const games = await getGamesList();
+  console.log(games);
   if (games.length === 0) {
     return (
       <div>
@@ -39,14 +18,14 @@ export default function GameList() {
         {games.map((game) => {
           return (
             <li
-              key={game.id}
+              key={game._id}
               className="flex justify-between items-center mt-2 mb-2 cursor-pointer"
             >
               <span>
                 {formatDate(game.createdAt)} | {game.title}
               </span>
               <span>
-                {game.likeCount}👍|{game.viewCount}👀|작성자
+                {game.likeCount}👍|{game.viewCount}👀|{game.author.name}
               </span>
             </li>
           );
