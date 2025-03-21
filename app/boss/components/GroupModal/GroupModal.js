@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import GroupTimerCard from './GroupTimerCard';
-import Pagination from './Pagination'; // 페이지네이션 컴포넌트 추가로 불러온다고 가정
+import Pagination from './Pagination';
 
 export default function GroupModal({ 
   groupName, 
-  timers = [], 
+  allTimers = [], 
   onClose, 
   handleKill, 
   removeTimer, 
@@ -15,8 +15,11 @@ export default function GroupModal({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25;
 
+  // ✅ 실시간 필터링: 선택한 그룹의 보스만 추출
+  const filteredTimers = allTimers.filter(timer => timer.gameName === groupName);
+
   // ✅ 젠 시간 기준 오름차순 정렬 (젠 완료거나 nextSpawnTime 없으면 뒤로)
-  const sortedTimers = [...timers].sort((a, b) => {
+  const sortedTimers = [...filteredTimers].sort((a, b) => {
     const aTime = a.nextSpawnTime && a.nextSpawnTime !== '젠 완료'
       ? new Date(a.nextSpawnTime).getTime()
       : Infinity;
@@ -31,6 +34,10 @@ export default function GroupModal({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = sortedTimers.slice(startIndex, endIndex);
+
+  // ✅ 콘솔 디버깅 로그
+  useEffect(() => {
+  }, [allTimers, groupName, currentPage]);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -56,7 +63,7 @@ export default function GroupModal({
           <p>등록된 보스가 없습니다.</p>
         )}
 
-        {/* ✅ 페이지네이션 버튼 추가 */}
+        {/* ✅ 페이지네이션 버튼 */}
         {totalPages > 1 && (
           <Pagination
             currentPage={currentPage}
