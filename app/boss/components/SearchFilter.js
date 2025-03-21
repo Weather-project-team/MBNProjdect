@@ -4,7 +4,6 @@ import debounce from "lodash.debounce";
 export default function SearchFilter({ timers, setFiltered }) {
   const [searchText, setSearchText] = useState("");
   const [filterRespawn, setFilterRespawn] = useState("all");
-  const [filterGame, setFilterGame] = useState("all");
 
   // ✅ 검색 & 필터 처리
   const handleFilter = () => {
@@ -12,50 +11,68 @@ export default function SearchFilter({ timers, setFiltered }) {
 
     // ✅ 텍스트 검색
     if (searchText.trim()) {
-      result = result.filter(timer =>
-        timer.bossName.includes(searchText) || timer.gameName.includes(searchText)
+      result = result.filter(
+        (timer) =>
+          timer.bossName.includes(searchText) ||
+          timer.gameName.includes(searchText)
       );
     }
 
     // ✅ 리젠 시간 필터
     if (filterRespawn === "under1") {
-      result = result.filter(timer => parseInt(timer.respawnTimeHours) < 1);
+      result = result.filter((timer) => parseInt(timer.respawnTimeHours) < 1);
     } else if (filterRespawn === "over1") {
-      result = result.filter(timer => parseInt(timer.respawnTimeHours) >= 1);
-    }
-
-    // ✅ 게임 이름 필터
-    if (filterGame !== "all") {
-      result = result.filter(timer => timer.gameName === filterGame);
+      result = result.filter((timer) => parseInt(timer.respawnTimeHours) >= 1);
     }
 
     setFiltered(result);
   };
 
-  // ✅ debounce 적용 (500ms)
   const debouncedFilter = debounce(handleFilter, 500);
 
   useEffect(() => {
     debouncedFilter();
     return debouncedFilter.cancel;
-  }, [searchText, filterRespawn, filterGame, timers]);
+  }, [searchText, filterRespawn]);
+
+  // ✅ 검색 초기화
+  const handleReset = () => {
+    debouncedFilter.cancel();      
+    setSearchText("");
+    setFilterRespawn("all");
+    setFiltered([]);              
+  };
 
   return (
-    <div className="mb-4 space-y-2">
-      <input
-        type="text"
-        placeholder="보스 이름 or 게임 이름 검색"
-        className="border p-2 w-full rounded"
-        value={searchText}
-        onChange={(e) => setSearchText(e.target.value)}
-      />
-
+    <div className="mb-4 w-full">
       <div className="flex gap-2">
-        <select className="border p-2 rounded" value={filterRespawn} onChange={(e) => setFilterRespawn(e.target.value)}>
+        {/* 검색창 (60%) */}
+        <input
+          type="text"
+          placeholder="보스 이름 or 게임 이름 검색"
+          className="border p-2 rounded w-[60%]"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+
+        {/* 리젠 시간 필터 (25%) */}
+        <select
+          className="border p-2 rounded w-[25%]"
+          value={filterRespawn}
+          onChange={(e) => setFilterRespawn(e.target.value)}
+        >
           <option value="all">리젠 시간 전체</option>
           <option value="under1">1시간 미만</option>
           <option value="over1">1시간 이상</option>
         </select>
+
+        {/* 검색 초기화 버튼 (15%) */}
+        <button
+          onClick={handleReset}
+          className="bg-red-500 text-white rounded w-[15%]"
+        >
+          초기화
+        </button>
       </div>
     </div>
   );

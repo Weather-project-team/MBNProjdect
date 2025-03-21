@@ -5,6 +5,7 @@ import BossGuide from "./components/BossGuide";
 import GroupModal from "./components/GroupModal/GroupModal";
 import EditModal from "./components/GroupModal/EditModal";
 import SearchFilter from "./components/SearchFilter";
+import GroupTimerCard from "./components/GroupModal/GroupTimerCard";
 
 export default function BossPage() {
   const [timers, setTimers] = useState([]);
@@ -12,27 +13,21 @@ export default function BossPage() {
   const [groupedTimers, setGroupedTimers] = useState({});
   const [editingTimer, setEditingTimer] = useState(null);
   const [filteredTimers, setFilteredTimers] = useState([]);
-
+  const [searchResult, setSearchResult] = useState(null); // ✅ 클릭된 검색 결과용
 
   // ✅ 서버에서 타이머 가져오기 (중복 방지)
   const fetchTimers = async () => {
     try {
       const res = await fetch("/api/timers");
       const data = await res.json();
-      if (res.ok) {
-        setTimers(data);
-      } else {
-        console.error("❌ 타이머 불러오기 실패:", data.error);
-      }
+      if (res.ok) setTimers(data);
+      else console.error("❌ 타이머 불러오기 실패:", data.error);
     } catch (err) {
       console.error("❌ 서버 요청 오류:", err);
     }
   };
 
-  // ✅ 최초 실행
-  useEffect(() => {
-    fetchTimers();
-  }, []);
+  useEffect(() => { fetchTimers(); }, []);
 
   // ✅ 실시간 상태 체크 (젠 완료, 곧 등장), 정렬
   useEffect(() => {
@@ -42,14 +37,9 @@ export default function BossPage() {
         if (timer.nextSpawnTime && timer.nextSpawnTime !== "젠 완료") {
           const nextTime = new Date(timer.nextSpawnTime).getTime();
           const timeRemaining = nextTime - now;
-
-          if (timeRemaining <= 0) {
-            return { ...timer, status: "젠 완료", isUpcoming: false };
-          } else if (timeRemaining <= 5 * 60 * 1000) {
-            return { ...timer, isUpcoming: true, status: null };
-          } else {
-            return { ...timer, isUpcoming: false, status: null };
-          }
+          if (timeRemaining <= 0) return { ...timer, status: "젠 완료", isUpcoming: false };
+          else if (timeRemaining <= 5 * 60 * 1000) return { ...timer, isUpcoming: true, status: null };
+          else return { ...timer, isUpcoming: false, status: null };
         }
         return timer;
       });
@@ -60,7 +50,6 @@ export default function BossPage() {
         const bTime = (b.nextSpawnTime && b.nextSpawnTime !== "젠 완료") ? new Date(b.nextSpawnTime).getTime() : Infinity;
         return aTime - bTime;
       });
-
       setTimers(sorted);
     }, 10000); // 10초마다 체크 및 정렬
 
@@ -86,9 +75,7 @@ export default function BossPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (res.ok) {
-        await fetchTimers(); // 중복 방지용 새로고침
-      }
+      if (res.ok) await fetchTimers();
     } catch (err) {
       console.error("❌ 저장 실패:", err);
     }
@@ -98,7 +85,6 @@ export default function BossPage() {
   const handleKill = async (timerId) => {
     const timer = timers.find((t) => t._id === timerId);
     if (!timer) return;
-
     const now = new Date();
     const respawnMs =
       (parseInt(timer.respawnTimeHours || 0) * 60 * 60 * 1000) +
@@ -111,15 +97,10 @@ export default function BossPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           timerId,
-          updates: {
-            killTime: now.toISOString(),
-            nextSpawnTime: nextSpawnTime.toISOString(),
-          },
+          updates: { killTime: now.toISOString(), nextSpawnTime: nextSpawnTime.toISOString() },
         }),
       });
-      if (res.ok) {
-        await fetchTimers();
-      }
+      if (res.ok) await fetchTimers();
     } catch (err) {
       console.error("❌ 처치 실패:", err);
     }
@@ -151,18 +132,14 @@ export default function BossPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ timerId, updates: newData }),
       });
-      if (res.ok) {
-        await fetchTimers();
-      }
+      if (res.ok) await fetchTimers();
     } catch (err) {
       console.error("❌ 수정 실패:", err);
     }
   };
 
   // ✅ 수정 모달 열기
-  const openEditModal = (timer) => {
-    setEditingTimer(timer);
-  };
+  const openEditModal = (timer) => { setEditingTimer(timer); };
 
   return (
     <div className="flex justify-center bg-gray-50 min-h-screen">
@@ -174,21 +151,49 @@ export default function BossPage() {
       {/* 메인 */}
       <div className="w-full max-w-6xl p-6">
         <BossGuide />
-        <SearchFilter timers={timers} setFiltered={setFilteredTimers} />
+        <SearchFilter
+          timers={timers}
+          setFiltered={setFilteredTimers}
+          resetSearch={() => setFilteredTimers([])}  
+        />
         <div className="flex gap-6 mt-6">
           <div className="flex-[0.7] bg-white p-6 rounded shadow">
             <TimerForm addTimer={addTimer} />
+            
+            {/* ✅ 검색 결과 영역 */}
             <div className="mt-6">
-        {filteredTimers.length > 0 ? (
-          filteredTimers.map((timer) => (
-            <div key={timer._id} className="p-2 border rounded mb-2">
-              {timer.bossName} - {timer.gameName}
-            </div>
-          ))
-        ) : (
-          <p className="mt-4 text-gray-500">검색 결과가 없습니다.</p>
-        )}
-      </div>
+              {searchResult ? (
+                <>
+                  <GroupTimerCard
+                    timer={searchResult}
+                    handleKill={handleKill}
+                    removeTimer={removeTimer}
+                    saveEdit={saveEdit}
+                    onEdit={openEditModal}
+                  />
+                   <button
+                  className="mt-4 bg-gray-300 text-black px-4 py-2 rounded"
+                  onClick={() => setSearchResult(null)}
+                >
+                  🔙 뒤로가기
+                </button>
+              </>
+            ) : filteredTimers.length > 0 ? (
+              <>
+                {filteredTimers.map((timer) => (
+                  <div
+                    key={timer._id}
+                    className="p-2 border rounded mb-2 cursor-pointer hover:bg-gray-100"
+                    onClick={() => setSearchResult(timer)}
+                  >
+                    {timer.bossName} - {timer.gameName}
+                  </div>
+                ))}
+              </>
+            ) : (
+              <p className="mt-4 text-gray-500">검색 결과가 없습니다.</p>
+            )}
+          </div>
           </div>
 
           {/* 게임 그룹 */}
