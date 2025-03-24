@@ -91,14 +91,14 @@ export default function LoginForm() {
         <span>카카오로 로그인하기</span>
       </button>
 
-      <button
+      {/* <button
         type="button"
         onClick={() => signIn("naver")}
         className="w-full h-10 flex items-center justify-center gap-2 bg-[#03C75A] text-white cursor-pointer font-medium rounded-md"
       >
         <SiNaver size={20} />
         <span>네이버로 로그인하기</span>
-      </button>
+      </button> */}
 
       <div className="text-center mt-10">
         <p className="text-sm">계정이 없으신가요?</p>
