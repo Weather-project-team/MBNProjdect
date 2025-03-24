@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "./Providers";
 import NavBar from "@/components/NavBar";
 import { auth } from "@/app/auth";
-import SessionProvider from "@/components/SessionProvider";
+import UserSessionProvider from "@/components/UserSessionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,10 +27,10 @@ export default async function RootLayout({ children }) {
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <Providers>
-          <SessionProvider session={session}>
+          <UserSessionProvider session={session}>
             <NavBar/>         
             {children}
-          </SessionProvider>
+          </UserSessionProvider>
         </Providers>
       </body>
     </html>

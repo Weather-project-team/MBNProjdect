@@ -1,12 +1,12 @@
 "use client";
 
 import { useContext } from "react";
-import { SessionContext } from "@/components/SessionProvider";
+import { SessionContext } from "@/components/UserSessionProvider";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
 
 export default function NavBar() {
-  const session = useContext(SessionContext); // ✅ Context에서 session 가져오기
+  const { session } = useContext(SessionContext); // ✅ Context에서 session 가져오기
 
   return (
     <nav className="w-full h-[150px] bg-gray-400 flex items-center justify-between p-4">
