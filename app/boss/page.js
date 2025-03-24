@@ -207,22 +207,31 @@ export default function BossPage() {
   const openEditModal = (timer) => { setEditingTimer(timer); };
 
   return (
-    <div className="flex justify-center bg-gray-50 min-h-screen">
+    <div className="bg-[#f5f5f5] min-h-screen py-8 flex justify-center">
+      {/* 좌측 광고 */}
       <div className="w-[200px] hidden lg:block p-4">
-        <div className="bg-gray-300 h-[600px] rounded">광고 자리</div>
+        <div className="bg-gray-300 h-[600px] border border-gray-400">광고 자리</div>
       </div>
-
-      <div className="w-full max-w-6xl p-6">
+  
+      {/* 메인 콘텐츠 */}
+      <div className="w-full max-w-7xl p-6 bg-white border border-gray-300">
         <BossGuide />
-        <SearchFilter
-          timers={timers}
-          setFiltered={setFilteredTimers}
-          resetSearch={() => setFilteredTimers([])}
-        />
-        <div className="flex gap-6 mt-6">
-          <div className="flex-[0.7] bg-white p-6 rounded shadow">
+  
+        {/* 검색 필터 */}
+        <div className="mt-6">
+          <SearchFilter
+            timers={timers}
+            setFiltered={setFilteredTimers}
+            resetSearch={() => setFilteredTimers([])}
+          />
+        </div>
+  
+        <div className="flex gap-8 mt-8">
+          {/* 왼쪽 - 입력 / 검색 결과 */}
+          <div className="flex-[0.7] bg-white p-6 border border-gray-300">
             <TimerForm addTimer={addTimer} />
-            {/* ✅ 검색 결과 */}
+  
+            {/* 검색 결과 영역 */}
             <div className="mt-6">
               {searchResult ? (
                 <>
@@ -234,7 +243,7 @@ export default function BossPage() {
                     onEdit={openEditModal}
                   />
                   <button
-                    className="mt-4 bg-gray-300 text-black px-4 py-2 rounded"
+                    className="mt-4 bg-white border border-gray-400 text-gray-800 px-4 py-2 hover:bg-gray-100 transition"
                     onClick={() => setSearchResult(null)}
                   >
                     🔙 뒤로가기
@@ -245,10 +254,11 @@ export default function BossPage() {
                   {filteredTimers.map((timer) => (
                     <div
                       key={timer._id}
-                      className="p-2 border rounded mb-2 cursor-pointer hover:bg-gray-100"
+                      className="p-3 border border-gray-300 mb-2 cursor-pointer hover:bg-gray-100 transition"
                       onClick={() => setSearchResult(timer)}
                     >
-                      {timer.bossName} - {timer.gameName}
+                      <p className="font-semibold">{timer.bossName}</p>
+                      <p className="text-sm text-gray-500">{timer.gameName}</p>
                     </div>
                   ))}
                 </>
@@ -257,28 +267,31 @@ export default function BossPage() {
               )}
             </div>
           </div>
-
-          {/* 게임 그룹 */}
-          <div className="flex-[0.3] bg-gray-100 p-4 rounded shadow h-fit">
-            <h2 className="text-lg font-bold mb-4">게임 그룹</h2>
+  
+          {/* 오른쪽 - 게임 그룹 */}
+          <div className="flex-[0.3] bg-white p-6 border border-gray-300 h-fit">
+            <h2 className="text-xl font-bold mb-4">게임 그룹</h2>
             {Object.keys(groupedTimers).map((game) => (
               <div
                 key={game}
-                className="cursor-pointer p-2 bg-white rounded mb-2 shadow hover:bg-blue-100"
+                className="cursor-pointer p-3 bg-white border border-gray-300 mb-3 hover:bg-gray-100 transition"
                 onClick={() => setSelectedGroup(game)}
               >
                 {game}
               </div>
             ))}
-             <NextSpawnBoss timers={timers} />
+  
+            {/* 가장 빨리 젠되는 보스 */}
+            <NextSpawnBoss timers={timers} />
           </div>
         </div>
       </div>
-
+  
+      {/* 우측 광고 */}
       <div className="w-[200px] hidden lg:block p-4">
-        <div className="bg-gray-300 h-[600px] rounded">광고 자리</div>
+        <div className="bg-gray-300 h-[600px] border border-gray-400">광고 자리</div>
       </div>
-
+  
       {/* 그룹 모달 */}
       {selectedGroup && (
         <GroupModal
@@ -292,7 +305,7 @@ export default function BossPage() {
           onEdit={openEditModal}
         />
       )}
-
+  
       {/* 수정 모달 */}
       {editingTimer && (
         <EditModal
@@ -303,4 +316,5 @@ export default function BossPage() {
       )}
     </div>
   );
+  
 }

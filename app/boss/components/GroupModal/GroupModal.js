@@ -55,21 +55,21 @@ export default function GroupModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg w-[1200px] max-h-[85vh] overflow-y-auto relative">
-        <h2 className="text-xl font-bold mb-4">{groupName} - 보스 리스트</h2>
-        <button onClick={onClose} className="absolute top-4 right-6 text-xl font-bold">X</button>
-
-        {/* ✅ 필터 버튼 영역 */}
-        <div className="flex gap-2 mb-4">
-          <button onClick={() => setFilter("all")} className={`p-2 rounded ${filter === 'all' ? 'bg-blue-400 text-white' : 'bg-gray-300'}`}>전체 보기</button>
-          <button onClick={() => setFilter("completed")} className={`p-2 rounded ${filter === 'completed' ? 'bg-blue-400 text-white' : 'bg-green-300'}`}>젠 완료</button>
-          <button onClick={() => setFilter("incomplete")} className={`p-2 rounded ${filter === 'incomplete' ? 'bg-blue-400 text-white' : 'bg-yellow-300'}`}>미완료</button>
-          <button onClick={() => setFilter("under1h")} className={`p-2 rounded ${filter === 'under1h' ? 'bg-blue-400 text-white' : 'bg-red-300'}`}>1시간 이내</button>
+     <div className="bg-white p-6 border border-gray-300 rounded-md w-[1300px] max-h-[85vh] overflow-y-auto relative">
+        <h2 className="text-2xl font-bold mb-6 border-b pb-3">{groupName} - 보스 리스트</h2>
+        <button onClick={onClose} className="absolute top-4 right-6 text-2xl font-bold hover:text-red-500 transition">X</button>
+  
+        {/* ✅ 필터 버튼 */}
+        <div className="flex gap-3 mb-6">
+          <button onClick={() => setFilter("all")} className={`px-4 py-2 border rounded-sm ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>전체 보기</button>
+          <button onClick={() => setFilter("completed")} className={`px-4 py-2 border rounded-sm ${filter === 'completed' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>젠 완료</button>
+          <button onClick={() => setFilter("incomplete")} className={`px-4 py-2 border rounded-sm ${filter === 'incomplete' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>미완료</button>
+          <button onClick={() => setFilter("under1h")} className={`px-4 py-2 border rounded-sm ${filter === 'under1h' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>1시간 이내</button>
         </div>
-
-        {/* ✅ 카드 렌더 */}
+  
+        {/* ✅ 보스 카드 리스트 */}
         {currentItems.length > 0 ? (
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-5 gap-6">
             {currentItems.map((timer) => (
               <GroupTimerCard
                 key={timer._id}
@@ -83,18 +83,21 @@ export default function GroupModal({
             ))}
           </div>
         ) : (
-          <p>등록된 보스가 없습니다.</p>
+          <p className="text-gray-500 text-center py-8">등록된 보스가 없습니다.</p>
         )}
-
+  
         {/* ✅ 페이지네이션 */}
         {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            goToPage={setCurrentPage}
-          />
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              goToPage={setCurrentPage}
+            />
+          </div>
         )}
       </div>
     </div>
   );
+  
 }
