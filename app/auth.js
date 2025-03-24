@@ -20,7 +20,10 @@ export const { auth, handlers } = NextAuth({
         if (!user) throw new Error("이메일이 존재하지 않습니다.");
 
         // ✅ 비밀번호 검증
-        const isValid = await bcrypt.compare(credentials.password, user.password);
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password
+        );
         if (!isValid) throw new Error("비밀번호가 틀렸습니다.");
 
         return { id: user._id.toString(), email: user.email, name: user.name };
@@ -51,7 +54,6 @@ export const { auth, handlers } = NextAuth({
 
 export const GET = handlers.GET;
 export const POST = handlers.POST;
-
 
 // 참고 : NextAuth는 app/api/auth/[...nextauth]/route.js를 보고 자동으로 다음 API들을 생성해줌
 //      API 엔드포인트	   ||           역할

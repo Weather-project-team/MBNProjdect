@@ -16,8 +16,15 @@ const CategoriesSchema = new mongoose.Schema({
   tag: { type: String, require: true },
 });
 
+const LikeSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  gameId: { type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const Like = mongoose.models.Like || mongoose.model("Like", LikeSchema);
 const Game = mongoose.models.Game || mongoose.model("Game", GameSchema);
 const Category =
   mongoose.models.Category || mongoose.model("Category", CategoriesSchema);
 
-export { Game, Category };
+export { Game, Category, Like };
