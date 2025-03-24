@@ -46,7 +46,6 @@ export default function GroupTimerCard({
           onClick={() => {
             if (confirm("처치하시겠습니까?")) {
               handleKill(timer._id);
-              alert("✅ 처치 완료");
             }
           }}
           className="bg-green-500 text-white text-xs px-2 py-1 rounded"

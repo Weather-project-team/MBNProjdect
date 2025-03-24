@@ -31,9 +31,14 @@ export default function SearchFilter({ timers, setFiltered }) {
   const debouncedFilter = debounce(handleFilter, 500);
 
   useEffect(() => {
+    if (searchText.trim() === "" && filterRespawn === "all") {
+      setFiltered([]); // ✅ 완전 초기화
+      return;
+    }
     debouncedFilter();
     return debouncedFilter.cancel;
   }, [searchText, filterRespawn]);
+  
 
   // ✅ 검색 초기화
   const handleReset = () => {
