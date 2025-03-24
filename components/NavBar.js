@@ -1,10 +1,12 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useContext } from "react";
+import { SessionContext } from "@/components/UserSessionProvider";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 
 export default function NavBar() {
-  const { data: session } = useSession(); // ✅ 로그인 상태 가져오기
+  const { session } = useContext(SessionContext); // ✅ Context에서 session 가져오기
 
   return (
     <nav className="w-full h-[150px] bg-gray-400 flex items-center justify-between p-4">
@@ -17,7 +19,7 @@ export default function NavBar() {
       <div className="flex items-center space-x-4">
         {session ? (
           <>
-            <span className="text-white">환영합니다, {session.user?.name || "사용자"}!</span>
+            <span className="text-white">환영합니다, {session.user?.name}님!</span>
             <Link href="/auth/mypage">마이페이지</Link>
             <button 
               onClick={() => signOut()} 

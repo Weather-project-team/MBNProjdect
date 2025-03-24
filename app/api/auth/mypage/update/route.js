@@ -7,16 +7,21 @@ export async function PATCH(req) {
   await connectDB();
   const session = await auth();
 
-  if (!session) {
+  if (!session || !session.user) {
     return NextResponse.json({ error: "로그인이 필요합니다." }, { status: 401 });
   }
 
-  const { name } = await req.json();
+  const { name, birthdate } = await req.json();
+
+  const updateFields = {};
+  if (name !== undefined) updateFields.name = name;
+  if (birthdate !== undefined) updateFields.birthdate = birthdate;
+
   const user = await User.findOneAndUpdate(
     { email: session.user.email },
-    { name },
+    updateFields,
     { new: true }
-  ).select("-password");
+  ).select("email name birthdate");
 
   if (!user) {
     return NextResponse.json({ error: "사용자 업데이트 실패" }, { status: 500 });
