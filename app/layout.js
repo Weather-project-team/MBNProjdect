@@ -25,10 +25,12 @@ export default async function RootLayout({ children }) {
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
         <Providers>
           <UserSessionProvider session={session}>
-            <NavBar/>         
+            <NavBar />
             {children}
           </UserSessionProvider>
         </Providers>
@@ -36,5 +38,3 @@ export default async function RootLayout({ children }) {
     </html>
   );
 }
-
-// ✅ 클라이언트 컴포넌트에서는 session을 Context로 관리

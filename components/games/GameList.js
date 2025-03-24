@@ -1,6 +1,6 @@
 import { getGamesList } from "@/lib/db";
 
-import formatDate from "@/utils/formatDate";
+import GameListItem from "./GameListItem";
 
 export default async function GameList() {
   const games = await getGamesList();
@@ -14,23 +14,7 @@ export default async function GameList() {
   }
   return (
     <div>
-      <ul>
-        {games.map((game) => {
-          return (
-            <li
-              key={game._id}
-              className="flex justify-between items-center mt-2 mb-2 cursor-pointer"
-            >
-              <span>
-                {formatDate(game.createdAt)} | {game.title}
-              </span>
-              <span>
-                {game.likeCount}👍|{game.viewCount}👀|{game.author.name}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
+      <GameListItem games={games} />
     </div>
   );
 }
