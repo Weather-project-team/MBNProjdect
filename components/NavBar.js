@@ -30,7 +30,7 @@ export default function NavBar() {
             </span>
             <Link href="/auth/mypage">마이페이지</Link>
             <button
-              onClick={() => signOut()}
+              onClick={() => signOut( { callbackUrl: "/auth/signin" } )}
               className="bg-red-500 text-white px-4 py-2 rounded cursor-pointer"
             >
               로그아웃
