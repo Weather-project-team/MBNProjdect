@@ -97,70 +97,153 @@ export default function TimerForm({ addTimer }) {
   };
 
   return (
-    <div className="p-4 bg-white shadow-md rounded">
-      <h2 className="text-lg font-bold text-center mb-4">보스 젠타이머 생성을 도와드리겠습니다</h2>
-
-      <div className="grid grid-cols-2 gap-3 mb-4">
+    <div className="p-6 bg-white border border-gray-300">
+      <h2 className="text-xl font-bold text-center mb-6">
+        보스 젠타이머 생성을 도와드리겠습니다
+      </h2>
+  
+      {/* 입력 필드 영역 */}
+      <div className="space-y-4 mb-6">
         {visibleFields.gameName && (
-          <div className="relative col-span-2">
-            <input type="text" name="gameName" placeholder="게임 이름" value={form.gameName} onChange={handleChange} className="border p-2 rounded w-full" />
-            <button onClick={() => removeField("gameName")} className="absolute right-2 top-2 text-red-500">X</button>
+          <div className="relative">
+            <input
+              type="text"
+              name="gameName"
+              placeholder="게임 이름"
+              value={form.gameName}
+              onChange={handleChange}
+              className="border border-gray-300 p-3 w-full"
+            />
+            <button onClick={() => removeField("gameName")} className="absolute right-3 top-3 text-red-500">X</button>
           </div>
         )}
         {visibleFields.bossName && (
-          <div className="relative col-span-2">
-            <input type="text" name="bossName" placeholder="보스 이름" value={form.bossName} onChange={handleChange} className="border p-2 rounded w-full" />
-            <button onClick={() => removeField("bossName")} className="absolute right-2 top-2 text-red-500">X</button>
+          <div className="relative">
+            <input
+              type="text"
+              name="bossName"
+              placeholder="보스 이름"
+              value={form.bossName}
+              onChange={handleChange}
+              className="border border-gray-300 p-3 w-full"
+            />
+            <button onClick={() => removeField("bossName")} className="absolute right-3 top-3 text-red-500">X</button>
           </div>
         )}
         {visibleFields.respawnTimeHours && (
-          <div className="relative col-span-2">
-            <input type="number" name="respawnTimeHours" placeholder="리젠 (시간)" value={form.respawnTimeHours} onChange={handleChange} className="border p-2 rounded w-full" />
-            <button onClick={() => removeField("respawnTimeHours")} className="absolute right-2 top-2 text-red-500">X</button>
+          <div className="relative">
+            <input
+              type="number"
+              name="respawnTimeHours"
+              placeholder="리젠 (시간)"
+              value={form.respawnTimeHours}
+              onChange={handleChange}
+              className="border border-gray-300 p-3 w-full"
+            />
+            <button onClick={() => removeField("respawnTimeHours")} className="absolute right-3 top-3 text-red-500">X</button>
           </div>
         )}
         {visibleFields.respawnTimeMinutes && (
-          <div className="relative col-span-2">
-            <input type="number" name="respawnTimeMinutes" placeholder="리젠 (분)" value={form.respawnTimeMinutes} onChange={handleChange} className="border p-2 rounded w-full" />
-            <button onClick={() => removeField("respawnTimeMinutes")} className="absolute right-2 top-2 text-red-500">X</button>
+          <div className="relative">
+            <input
+              type="number"
+              name="respawnTimeMinutes"
+              placeholder="리젠 (분)"
+              value={form.respawnTimeMinutes}
+              onChange={handleChange}
+              className="border border-gray-300 p-3 w-full"
+            />
+            <button onClick={() => removeField("respawnTimeMinutes")} className="absolute right-3 top-3 text-red-500">X</button>
           </div>
         )}
         {visibleFields.location && (
-          <div className="relative col-span-2">
-            <input type="text" name="location" placeholder="보스 위치 (선택)" value={form.location} onChange={handleChange} className="border p-2 rounded w-full" />
-            <button onClick={() => removeField("location")} className="absolute right-2 top-2 text-red-500">X</button>
+          <div className="relative">
+            <input
+              type="text"
+              name="location"
+              placeholder="보스 위치 (선택)"
+              value={form.location}
+              onChange={handleChange}
+              className="border border-gray-300 p-3 w-full"
+            />
+            <button onClick={() => removeField("location")} className="absolute right-3 top-3 text-red-500">X</button>
           </div>
         )}
-        {!visibleFields.manualKillTime && (
-          <button onClick={() => addField("manualKillTime")} className="bg-blue-500 text-white px-4 py-2 rounded mb-3">
-            + 수기로 처치시간 입력하기
-          </button>
-        )}
         {visibleFields.manualKillTime && (
-          <div className="relative col-span-2">
+          <div className="relative">
             <input
               type="text"
               name="manualKillTime"
               placeholder="처치시간을 입력해주세요 (예: 16:30)"
               value={form.manualKillTime}
               onChange={handleChange}
-              className="border p-2 rounded w-full"
+              className="border border-gray-300 p-3 w-full"
             />
-            <button onClick={() => removeField("manualKillTime")} className="absolute right-2 top-2 text-red-500">X</button>
+            <button onClick={() => removeField("manualKillTime")} className="absolute right-3 top-3 text-red-500">X</button>
           </div>
         )}
       </div>
-
-      {/* ✅ 버튼 영역 */}
-      <div className="flex flex-wrap gap-2 mb-3">
-        {!visibleFields.gameName && <button onClick={() => addField("gameName")} className="bg-gray-300 px-3 py-1 rounded">+ 게임 이름</button>}
-        {!visibleFields.bossName && <button onClick={() => addField("bossName")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 이름</button>}
-        {!visibleFields.respawnTimeHours && <button onClick={() => addField("respawnTimeHours")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 젠 시간 (시간)</button>}
-        {!visibleFields.respawnTimeMinutes && <button onClick={() => addField("respawnTimeMinutes")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 젠 시간 (분)</button>}
-        {!visibleFields.location && <button onClick={() => addField("location")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 위치</button>}
+  
+      {/* ✅ 계산기 배치 버튼 (3 x 2) */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        {!visibleFields.gameName && (
+          <button
+            onClick={() => addField("gameName")}
+            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+          >
+            + 게임 이름
+          </button>
+        )}
+        {!visibleFields.bossName && (
+          <button
+            onClick={() => addField("bossName")}
+            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+          >
+            + 보스 이름
+          </button>
+        )}
+        {!visibleFields.respawnTimeHours && (
+          <button
+            onClick={() => addField("respawnTimeHours")}
+            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+          >
+            + 젠 시간 (시간)
+          </button>
+        )}
+        {!visibleFields.respawnTimeMinutes && (
+          <button
+            onClick={() => addField("respawnTimeMinutes")}
+            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+          >
+            + 젠 시간 (분)
+          </button>
+        )}
+        {!visibleFields.location && (
+          <button
+            onClick={() => addField("location")}
+            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+          >
+            + 보스 위치
+          </button>
+        )}
+        {!visibleFields.manualKillTime && (
+          <button
+            onClick={() => addField("manualKillTime")}
+            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm leading-tight hover:bg-gray-100"
+          >
+            + 처치시간 입력
+          </button>
+        )}
       </div>
-
-      <button onClick={handleSubmit} className="bg-blue-500 text-white px-4 py-2 rounded w-full">젠 타이머 추가</button>
+  
+      {/* ✅ 젠 타이머 추가 - 검은 버튼으로 강조 */}
+      <button
+        onClick={handleSubmit}
+        className="w-full bg-black text-white py-4 hover:opacity-90"
+      >
+        젠 타이머 추가
+      </button>
     </div>
   );
+  
 }

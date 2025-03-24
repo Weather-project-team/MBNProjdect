@@ -2,23 +2,41 @@ import { useState, useEffect } from 'react';
 import GroupTimerCard from './GroupTimerCard';
 import Pagination from './Pagination';
 
-export default function GroupModal({ 
-  groupName, 
-  allTimers = [], 
-  onClose, 
-  handleKill, 
-  removeTimer, 
-  updateTimer, 
-  saveEdit, 
-  onEdit 
+export default function GroupModal({
+  groupName,
+  allTimers = [],
+  onClose,
+  handleKill,
+  removeTimer,
+  updateTimer,
+  saveEdit,
+  onEdit
 }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const [filter, setFilter] = useState("all"); // ✅ 필터 추가
   const itemsPerPage = 25;
 
-  // ✅ 실시간 필터링: 선택한 그룹의 보스만 추출
-  const filteredTimers = allTimers.filter(timer => timer.gameName === groupName);
+  // ✅ 필터 바뀌면 무조건 1페이지로 초기화
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
 
-  // ✅ 젠 시간 기준 오름차순 정렬 (젠 완료거나 nextSpawnTime 없으면 뒤로)
+  // ✅ 그룹 보스만 추출
+  const groupTimers = allTimers.filter(timer => timer.gameName === groupName);
+
+  // ✅ 필터링 처리
+  const now = new Date().getTime();
+  const filteredTimers = groupTimers.filter((timer) => {
+    const nextTime = new Date(timer.nextSpawnTime).getTime();
+    const timeRemaining = nextTime - now;
+
+    if (filter === "completed") return timer.status === "젠 완료";
+    if (filter === "incomplete") return timer.status !== "젠 완료";
+    if (filter === "under1h") return timer.status !== "젠 완료" && timeRemaining > 0 && timeRemaining <= 60 * 60 * 1000;
+    return true; // 전체
+  });
+
+  // ✅ 젠 시간 기준 오름차순 정렬
   const sortedTimers = [...filteredTimers].sort((a, b) => {
     const aTime = a.nextSpawnTime && a.nextSpawnTime !== '젠 완료'
       ? new Date(a.nextSpawnTime).getTime()
@@ -29,24 +47,29 @@ export default function GroupModal({
     return aTime - bTime;
   });
 
-  // ✅ 페이지네이션 적용
+  // ✅ 페이지네이션
   const totalPages = Math.ceil(sortedTimers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentItems = sortedTimers.slice(startIndex, endIndex);
 
-  // ✅ 콘솔 디버깅 로그
-  useEffect(() => {
-  }, [allTimers, groupName, currentPage]);
-
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg w-[1200px] max-h-[85vh] overflow-y-auto relative">
-        <h2 className="text-xl font-bold mb-4">{groupName} - 보스 리스트</h2>
-        <button onClick={onClose} className="absolute top-4 right-6 text-xl font-bold">X</button>
-
+     <div className="bg-white p-6 border border-gray-300 rounded-md w-[1300px] max-h-[85vh] overflow-y-auto relative">
+        <h2 className="text-2xl font-bold mb-6 border-b pb-3">{groupName} - 보스 리스트</h2>
+        <button onClick={onClose} className="absolute top-4 right-6 text-2xl font-bold hover:text-red-500 transition">X</button>
+  
+        {/* ✅ 필터 버튼 */}
+        <div className="flex gap-3 mb-6">
+          <button onClick={() => setFilter("all")} className={`px-4 py-2 border rounded-sm ${filter === 'all' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>전체 보기</button>
+          <button onClick={() => setFilter("completed")} className={`px-4 py-2 border rounded-sm ${filter === 'completed' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>젠 완료</button>
+          <button onClick={() => setFilter("incomplete")} className={`px-4 py-2 border rounded-sm ${filter === 'incomplete' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>미완료</button>
+          <button onClick={() => setFilter("under1h")} className={`px-4 py-2 border rounded-sm ${filter === 'under1h' ? 'bg-blue-500 text-white' : 'bg-white text-gray-800 hover:bg-gray-100'}`}>1시간 이내</button>
+        </div>
+  
+        {/* ✅ 보스 카드 리스트 */}
         {currentItems.length > 0 ? (
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-5 gap-6">
             {currentItems.map((timer) => (
               <GroupTimerCard
                 key={timer._id}
@@ -55,23 +78,26 @@ export default function GroupModal({
                 removeTimer={removeTimer}
                 updateTimer={updateTimer}
                 saveEdit={saveEdit}
-                onEdit={onEdit}  
+                onEdit={onEdit}
               />
             ))}
           </div>
         ) : (
-          <p>등록된 보스가 없습니다.</p>
+          <p className="text-gray-500 text-center py-8">등록된 보스가 없습니다.</p>
         )}
-
-        {/* ✅ 페이지네이션 버튼 */}
+  
+        {/* ✅ 페이지네이션 */}
         {totalPages > 1 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            goToPage={setCurrentPage}
-          />
+          <div className="mt-8">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              goToPage={setCurrentPage}
+            />
+          </div>
         )}
       </div>
     </div>
   );
+  
 }
