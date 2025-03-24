@@ -25,89 +25,63 @@ export default function TimerForm({ addTimer }) {
   };
 
   const handleSubmit = async () => {
-  if (!form.bossName || (!form.respawnTimeHours && !form.respawnTimeMinutes)) {
-    alert("⚠️ 게임 이름, 보스 이름, 리젠 시간(시간 또는 분) 은 필수 입력 항목입니다!");
-    return;
-  }
-
-  let killTime = null;
-  let nextSpawnTime = null;
-
-  // ✅ 수기 처치 시간이 입력된 경우
-  if (form.manualKillTime) {
-    const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
-    if (!timeRegex.test(form.manualKillTime)) {
-      alert("처치 시간을 올바른 형식(예: 16:30)으로 입력해주세요.");
+    if (!form.bossName || (!form.respawnTimeHours && !form.respawnTimeMinutes)) {
+      alert("⚠️ 게임 이름, 보스 이름, 리젠 시간(시간 또는 분)은 필수 입력 항목입니다!");
       return;
     }
 
-    const today = new Date();
-    const formattedDate = today.toISOString().split("T")[0];
-    const [hour, minute] = form.manualKillTime.split(":").map(val => parseInt(val, 10));
+    let killTime = null;
+    let nextSpawnTime = null;
 
-    killTime = new Date(`${formattedDate}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
+    // ✅ 수기 처치 시간이 입력된 경우
+    if (form.manualKillTime) {
+      const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
+      if (!timeRegex.test(form.manualKillTime)) {
+        alert("처치 시간을 올바른 형식(예: 16:30)으로 입력해주세요.");
+        return;
+      }
 
-    if (isNaN(killTime.getTime())) {
-      alert("입력하신 처치 시간이 유효하지 않습니다.");
-      return;
+      const today = new Date();
+      const formattedDate = today.toISOString().split("T")[0];
+      const [hour, minute] = form.manualKillTime.split(":").map(Number);
+      killTime = new Date(`${formattedDate}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
+
+      if (isNaN(killTime.getTime())) {
+        alert("입력하신 처치 시간이 유효하지 않습니다.");
+        return;
+      }
+
+      const respawnTimeMs =
+        (parseInt(form.respawnTimeHours || 0) * 60 * 60 * 1000) +
+        (parseInt(form.respawnTimeMinutes || 0) * 60 * 1000);
+      nextSpawnTime = new Date(killTime.getTime() + respawnTimeMs).toISOString();
     }
 
-    console.log("✅ 수기로 입력한 처치 시간:", killTime.toISOString());
+    const newTimer = {
+      gameName: form.gameName,
+      bossName: form.bossName,
+      location: form.location,
+      respawnTimeHours: form.respawnTimeHours || "0",
+      respawnTimeMinutes: form.respawnTimeMinutes || "0",
+      killTime: killTime ? killTime.toISOString() : null,
+      nextSpawnTime,
+    };
 
-    // ✅ 리젠 시간 변환 (시간 + 분)
-    const respawnTimeMs =
-      (parseInt(form.respawnTimeHours || 0, 10) * 60 * 60 * 1000) +
-      (parseInt(form.respawnTimeMinutes || 0, 10) * 60 * 1000);
+    // ✅ BossPage에서 내려준 addTimer만 호출 (중복 저장 방지)
+    await addTimer(newTimer);
 
-    // ✅ 다음 젠 시간 계산
-    nextSpawnTime = new Date(killTime.getTime() + respawnTimeMs).toISOString();
-  }
+    alert("✅ 타이머가 성공적으로 저장되었습니다!");
 
-  // ✅ MongoDB에 저장할 타이머 객체 생성
-  const newTimer = {
-    gameName: form.gameName,
-    bossName: form.bossName,
-    location: form.location,
-    respawnTimeHours: form.respawnTimeHours || "0",
-    respawnTimeMinutes: form.respawnTimeMinutes || "0",
-    killTime: killTime ? killTime.toISOString() : null,
-    nextSpawnTime,
-  };
-
-  try {
-    // ✅ MongoDB에 저장 요청
-    const response = await fetch("/api/timers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newTimer),
+    // ✅ 입력 초기화
+    setForm({
+      gameName: "",
+      bossName: "",
+      respawnTimeHours: "",
+      respawnTimeMinutes: "",
+      location: "",
+      manualKillTime: "",
     });
-
-    const data = await response.json();
-    if (response.ok) {
-      alert("✅ 타이머가 성공적으로 저장되었습니다!");
-      addTimer(data.timer); // ✅ MongoDB에 저장된 데이터를 추가
-      setForm({
-        gameName: "",
-        bossName: "",
-        respawnTimeHours: "",
-        respawnTimeMinutes: "",
-        location: "",
-        manualKillTime: "",
-      });
-    } else {
-      alert(`❌ 오류 발생: ${data.error}`);
-    }
-  } catch (error) {
-    console.error("❌ 서버 요청 실패:", error);
-    alert("서버 요청에 실패했습니다.");
-  }
-};
-
-  
-  
-  
-  
-  
+  };
 
   const addField = (field) => {
     if (field === "manualKillTime") {
@@ -158,10 +132,10 @@ export default function TimerForm({ addTimer }) {
           </div>
         )}
         {!visibleFields.manualKillTime && (
-        <button onClick={() => addField("manualKillTime")} className="bg-blue-500 text-white px-4 py-2 rounded mb-3">
-          + 수기로 처치시간 입력하기
-        </button>
-         )}
+          <button onClick={() => addField("manualKillTime")} className="bg-blue-500 text-white px-4 py-2 rounded mb-3">
+            + 수기로 처치시간 입력하기
+          </button>
+        )}
         {visibleFields.manualKillTime && (
           <div className="relative col-span-2">
             <input
@@ -177,7 +151,7 @@ export default function TimerForm({ addTimer }) {
         )}
       </div>
 
-      {/* ✅ 버튼을 다시 추가 */}
+      {/* ✅ 버튼 영역 */}
       <div className="flex flex-wrap gap-2 mb-3">
         {!visibleFields.gameName && <button onClick={() => addField("gameName")} className="bg-gray-300 px-3 py-1 rounded">+ 게임 이름</button>}
         {!visibleFields.bossName && <button onClick={() => addField("bossName")} className="bg-gray-300 px-3 py-1 rounded">+ 보스 이름</button>}
