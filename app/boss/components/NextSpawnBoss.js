@@ -1,19 +1,32 @@
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
 export default function NextSpawnBoss({ timers }) {
-  // 🔥 가장 먼저 젠 되는 보스 계산
-  const nextBoss = useMemo(() => {
-    const now = new Date().getTime();
-    const upcoming = timers
-      .filter((timer) => timer.nextSpawnTime && timer.nextSpawnTime !== "젠 완료")
-      .map((timer) => ({
-        ...timer,
-        timeRemaining: new Date(timer.nextSpawnTime).getTime() - now,
-      }))
-      .filter((timer) => timer.timeRemaining > 0)
-      .sort((a, b) => a.timeRemaining - b.timeRemaining);
+  const [nextBoss, setNextBoss] = useState(null);
 
-    return upcoming[0] || null;
+  useEffect(() => {
+    const calculateNextBoss = () => {
+      const now = new Date().getTime();
+      const upcoming = timers
+        .filter((timer) => timer.nextSpawnTime && timer.nextSpawnTime !== "젠 완료")
+        .map((timer) => ({
+          ...timer,
+          timeRemaining: new Date(timer.nextSpawnTime).getTime() - now,
+        }))
+        .filter((timer) => timer.timeRemaining > 0)
+        .sort((a, b) => a.timeRemaining - b.timeRemaining);
+
+      setNextBoss(upcoming[0] || null);
+    };
+
+    // ✅ 처음 계산
+    calculateNextBoss();
+
+    // ✅ 1초마다 계산 (실시간)
+    const interval = setInterval(() => {
+      calculateNextBoss();
+    }, 1000);
+
+    return () => clearInterval(interval); // 언마운트 시 정리
   }, [timers]);
 
   return (
