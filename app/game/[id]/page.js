@@ -1,3 +1,4 @@
+import DetailButton from "@/components/games/DetailButton";
 import LikeButton from "@/components/games/LikeButton";
 import { getGamesDetail } from "@/lib/db";
 import formatDate from "@/utils/formatDate";
@@ -30,10 +31,7 @@ export default async function DetailPage({ params }) {
           <span>조회수 :{item.viewCount}</span>
         </div>
 
-        <div>
-          <button>삭제</button>
-          <button>삭제</button>
-        </div>
+        <DetailButton item={item} id={id} />
       </div>
 
       <div>
