@@ -7,6 +7,7 @@ import ChangePasswordModal from "@/components/auth/ChangePasswordModal";
 export default function MyPage() {
   const { session, setSession } = useContext(SessionContext);
   const [name, setName] = useState("");
+  const [nameValid, setNameValid] = useState(null);
   const [birthdate, setBirthdate] = useState("");
   const [email, setEmail] = useState("");
   const [isEditing, setIsEditing] = useState(false);
@@ -22,8 +23,27 @@ export default function MyPage() {
     }
   }, [session]);
 
+  const checkNickname = async () => {
+    if (!name || name === session.user.name) {
+      setNameValid(null); // 본인의 기존 닉네임이면 체크 안 함
+      alert("닉네임이 변경되지 않았습니다.");
+      return;
+    }
+
+    const res = await fetch(`/api/auth/check-duplicate?name=${name}`);
+    const data = await res.json();
+    if (data.type === "name") {
+      setNameValid(!data.exists);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (nameValid === false) {
+      alert("이미 사용 중인 닉네임입니다.");
+      return;
+    }
 
     const res = await fetch("/api/auth/mypage/update", {
       method: "PATCH",
@@ -35,6 +55,7 @@ export default function MyPage() {
       const updated = await res.json();
       alert("정보가 업데이트되었습니다.");
       setIsEditing(false);
+      setNameValid(null); // 업데이트 후 초기화
 
       setSession({
         ...session,
@@ -60,7 +81,7 @@ export default function MyPage() {
         <label className="block text-gray-700">이메일</label>
         <input
           type="text"
-          value={isSocial ? "카카오 로그인" : email}
+          value={isSocial ? "카카오 로그인 사용자" : email}
           disabled
           className="w-full p-2 border rounded bg-gray-100"
         />
@@ -89,16 +110,31 @@ export default function MyPage() {
         <ChangePasswordModal onClose={() => setShowPasswordModal(false)} />
       )}
 
-      {/* ✅ 이름 */}
+      {/* ✅ 닉네임 */}
       <div className="mb-4">
-        <label className="block text-gray-700">이름</label>
+        <label className="block text-gray-700">닉네임</label>
         <input
           type="text"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => { setName(e.target.value);
+            setNameValid(null); // 입력 바뀌면 초기화
+          }}
           disabled={!isEditing}
           className="w-full p-2 border rounded"
         />
+
+      {isEditing && (
+          <>
+            <button type="button" onClick={checkNickname} className="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-md text-sm cursor-pointer">
+              닉네임 중복확인
+            </button>
+            {nameValid !== null && (
+              <p className={`text-sm mt-1 ${nameValid ? "text-green-600" : "text-red-500"}`}>
+                {nameValid ? "사용 가능한 닉네임입니다." : "이미 사용 중인 닉네임입니다."}
+              </p>
+            )}
+          </>
+        )}
       </div>
 
       {/* ✅ 생년월일 */}
@@ -118,14 +154,14 @@ export default function MyPage() {
         {!isEditing ? (
           <button
             onClick={() => setIsEditing(true)}
-            className="w-full bg-gray-500 text-white p-2 rounded"
+            className="w-full bg-gray-500 text-white p-2 rounded cursor-pointer"
           >
             내 정보 수정하기
           </button>
         ) : (
           <button
             onClick={handleSubmit}
-            className="w-full bg-blue-500 text-white p-2 rounded"
+            className="w-full bg-blue-500 text-white p-2 rounded cursor-pointer"
           >
             저장하기
           </button>

@@ -45,34 +45,37 @@ export const { auth, handlers } = NextAuth({
   callbacks: {
     async jwt({ token, user, account, profile }) {
       // ✅ 1. 카카오 로그인 처리 우선
+      // jwt 콜백 내 카카오 로그인 분기
       if (account?.provider === "kakao" && profile) {
-        const kakaoId = profile.id?.toString(); // ✅ 고유 ID
-        const nickname = profile.properties?.nickname ?? "카카오유저";
-        const image = profile.properties?.profile_image ?? null;
-    
-        token.name = nickname;
-        token.picture = image;
-        token.provider = "kakao";
-        token.kakaoId = kakaoId;
-    
+        const kakaoId = profile.id?.toString();
         await connectDB();
-        const existingUser = await User.findOne({
-          provider: "kakao",
-          providerId: kakaoId, // ✅ 정확한 기준
-        });
-    
+
+        const existingUser = await User.findOne({ provider: "kakao", providerId: kakaoId });
+
         if (!existingUser) {
+          // 등록되지 않은 사용자
           token.id = null;
           token.role = "USER";
+          token.name = profile.properties?.nickname ?? "카카오유저";
+          token.picture = profile.properties?.profile_image ?? null;
           token.needRegister = true;
         } else {
+          // ✅ DB에서 불러온 최신 정보를 세션에 반영!
           token.id = existingUser._id.toString();
+          token.email = existingUser.email ?? null;
+          token.name = existingUser.name;
           token.role = existingUser.role || "USER";
+          token.picture = existingUser.profileImage ?? null;
+          token.birthdate = existingUser.birthdate ?? null;
           token.needRegister = false;
         }
-    
+
+        token.provider = "kakao";
+        token.kakaoId = kakaoId;
+
         return token;
       }
+
     
       // ✅ 2. 일반 로그인 처리
       if (user) {
@@ -94,8 +97,9 @@ export const { auth, handlers } = NextAuth({
         session.user.role = token.role;
         session.user.picture = token.picture;
         session.user.provider = token.provider;
-        session.user.needRegister = token.needRegister ?? false;
         session.user.kakaoId = token.kakaoId ?? null;
+        session.user.birthdate = token.birthdate ?? null;
+        session.user.needRegister = token.needRegister ?? false;
       }
       return session;
     },
