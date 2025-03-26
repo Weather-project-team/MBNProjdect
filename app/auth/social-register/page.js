@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 export default function SocialRegisterPage() {
   const { session, setSession } = useContext(SessionContext);
   const [name, setName] = useState("");
+  const [nameValid, setNameValid] = useState(null);
   const [birthdate, setBirthdate] = useState("");
   const router = useRouter();
 
@@ -16,8 +17,26 @@ export default function SocialRegisterPage() {
     }
   }, [session]);
 
+  const checkNickname = async () => {
+    if (!name) {
+      setNameValid(null);
+      return;
+    }
+
+    const res = await fetch(`/api/auth/check-duplicate?name=${name}`);
+    const data = await res.json();
+    if (data.type === "name") {
+      setNameValid(!data.exists);
+    }
+  };
+
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    if (nameValid === false) {
+      alert("이미 사용 중인 닉네임입니다.");
+      return;
+    }
 
     const res = await fetch("/api/auth/social-register", {
       method: "POST",
@@ -44,7 +63,7 @@ export default function SocialRegisterPage() {
       },
     });
     
-    router.replace("/auth/mypage");
+    router.replace("/");
   }
 
   if (!session?.user?.needRegister) {
@@ -53,7 +72,7 @@ export default function SocialRegisterPage() {
 
   return (
     <div className="max-w-md mx-auto mt-20 p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-4 text-center">추가 정보 입력</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">추가 정보를 입력해 주세요.</h2>
 
       <form onSubmit={handleRegister} className="space-y-4">
         <div>
@@ -61,10 +80,24 @@ export default function SocialRegisterPage() {
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => { setName(e.target.value);
+              setNameValid(null); // 값이 바뀌면 중복 결과 초기화
+            }}
             required
             className="w-full px-3 py-2 border rounded-md"
           />
+          <button
+            type="button"
+            onClick={checkNickname}
+            className="mt-2 px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-md text-sm cursor-pointer"
+          >
+            닉네임 중복확인하기
+          </button>
+          {nameValid !== null && (
+            <p className={`text-sm mt-1 ${nameValid ? "text-green-600" : "text-red-500"}`}>
+              {nameValid ? "사용 가능한 닉네임입니다." : "이미 사용 중인 닉네임입니다."}
+            </p>
+          )}
         </div>
 
         <div>
@@ -80,7 +113,7 @@ export default function SocialRegisterPage() {
 
         <button
           type="submit"
-          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-md font-semibold"
+          className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-md font-semibold cursor-pointer"
         >
           가입 완료
         </button>
