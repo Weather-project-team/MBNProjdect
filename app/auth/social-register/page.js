@@ -1,11 +1,11 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import { SessionContext } from "@/components/UserSessionProvider";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function SocialRegisterPage() {
-  const { session, setSession } = useContext(SessionContext);
+  const { data : session } = useSession();
   const [name, setName] = useState("");
   const [nameValid, setNameValid] = useState(null);
   const [birthdate, setBirthdate] = useState("");
@@ -50,21 +50,10 @@ export default function SocialRegisterPage() {
       return;
     }
     
-    const data = await res.json();
     alert("가입이 완료되었습니다!");
-    
-    setSession({
-      ...session,
-      user: {
-        ...session.user,
-        name,
-        birthdate,
-        needRegister: false,
-      },
-    });
-    
+
     router.replace("/");
-  }
+  };
 
   if (!session?.user?.needRegister) {
     return <p className="text-center mt-20 text-gray-500">잘못된 접근입니다.</p>;
@@ -80,7 +69,8 @@ export default function SocialRegisterPage() {
           <input
             type="text"
             value={name}
-            onChange={(e) => { setName(e.target.value);
+            onChange={(e) => {
+              setName(e.target.value);
               setNameValid(null); // 값이 바뀌면 중복 결과 초기화
             }}
             required

@@ -1,11 +1,11 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
-import { SessionContext } from "@/components/UserSessionProvider";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import ChangePasswordModal from "@/components/auth/ChangePasswordModal";
 
 export default function MyPage() {
-  const { session, setSession } = useContext(SessionContext);
+  const { data: session } = useSession();
   const [name, setName] = useState("");
   const [nameValid, setNameValid] = useState(null);
   const [birthdate, setBirthdate] = useState("");
@@ -56,15 +56,6 @@ export default function MyPage() {
       alert("정보가 업데이트되었습니다.");
       setIsEditing(false);
       setNameValid(null); // 업데이트 후 초기화
-
-      setSession({
-        ...session,
-        user: {
-          ...session.user,
-          name: updated.user.name,
-          birthdate: updated.user.birthdate,
-        },
-      });
     } else {
       alert("업데이트 실패!");
     }

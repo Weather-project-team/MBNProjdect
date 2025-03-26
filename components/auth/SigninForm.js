@@ -1,17 +1,16 @@
 "use client";
 
-import { useState, useEffect, useContext } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { SessionContext } from "@/components/UserSessionProvider";
 import Link from "next/link";
 import { RiKakaoTalkFill } from "react-icons/ri";
-import { SiNaver } from "react-icons/si";
+// import { SiNaver } from "react-icons/si";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const session = useContext(SessionContext);
+  const { data: session } = useSession();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -24,7 +23,8 @@ export default function LoginForm() {
 
     if (!result?.error) {
       alert("로그인 성공!");
-      router.replace("/auth/mypage");
+      // router.refresh(); // ✅ 현재 route를 리렌더링해서 session 반영 그냥되면삭제
+      router.replace("/");
     } else {
       alert("로그인 실패: " + result.error);
     }
