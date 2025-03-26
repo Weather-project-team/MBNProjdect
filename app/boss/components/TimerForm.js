@@ -1,5 +1,8 @@
 "use client";
+
 import { useState } from "react";
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
 
 export default function TimerForm({ addTimer }) {
   const [form, setForm] = useState({
@@ -20,8 +23,14 @@ export default function TimerForm({ addTimer }) {
     manualKillTime: false,
   });
 
+  const [progress, setProgress] = useState(0);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === 'respawnTimeMinutes') {
+      const val = Math.min(100, Math.max(0, parseInt(e.target.value) || 0));
+      setProgress(val);
+    }
   };
 
   const handleSubmit = async () => {
@@ -33,7 +42,6 @@ export default function TimerForm({ addTimer }) {
     let killTime = null;
     let nextSpawnTime = null;
 
-    // ✅ 수기 처치 시간이 입력된 경우
     if (form.manualKillTime) {
       const timeRegex = /^([01]?[0-9]|2[0-3]):([0-5][0-9])$/;
       if (!timeRegex.test(form.manualKillTime)) {
@@ -43,7 +51,7 @@ export default function TimerForm({ addTimer }) {
 
       const today = new Date();
       const formattedDate = today.toISOString().split("T")[0];
-      const [hour, minute] = form.manualKillTime.split(":").map(Number);
+      const [hour, minute] = form.manualKillTime.split(":" ).map(Number);
       killTime = new Date(`${formattedDate}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00`);
 
       if (isNaN(killTime.getTime())) {
@@ -67,12 +75,9 @@ export default function TimerForm({ addTimer }) {
       nextSpawnTime,
     };
 
-    // ✅ BossPage에서 내려준 addTimer만 호출 (중복 저장 방지)
     await addTimer(newTimer);
-
     alert("✅ 타이머가 성공적으로 저장되었습니다!");
 
-    // ✅ 입력 초기화
     setForm({
       gameName: "",
       bossName: "",
@@ -81,6 +86,7 @@ export default function TimerForm({ addTimer }) {
       location: "",
       manualKillTime: "",
     });
+    setProgress(0);
   };
 
   const addField = (field) => {
@@ -97,13 +103,28 @@ export default function TimerForm({ addTimer }) {
   };
 
   return (
-    <div className="p-6 bg-white border border-gray-300">
-      <h2 className="text-xl font-bold text-center mb-6">
-        보스 젠타이머 생성을 도와드리겠습니다
+    <div className="p-8 bg-gray-900 rounded-2xl shadow-lg max-w-md mx-auto border-4 border-green-500">
+      <h2 className="text-2xl text-green-400 font-mono text-center mb-6 cursor-default">
+        🕒 보스 젠 타이머 세팅 🕒
       </h2>
-  
-      {/* 입력 필드 영역 */}
-      <div className="space-y-4 mb-6">
+
+      {/* 원형 프로그레스 */}
+      <div className="relative w-60 h-60 mx-auto cursor-default">
+        <CircularProgressbar
+          value={progress}
+          text={`${progress}%`}
+          styles={buildStyles({
+            pathColor: progress > 70 ? "#ef4444" : "#22c55e",
+            textColor: "#ffffff",
+            trailColor: "#334155",
+            textSize: '18px',
+            pathTransitionDuration: 0.5
+          })}
+        />
+      </div>
+
+      {/* 입력 필드 */}
+      <div className="mt-8 space-y-4">
         {visibleFields.gameName && (
           <div className="relative">
             <input
@@ -112,9 +133,9 @@ export default function TimerForm({ addTimer }) {
               placeholder="게임 이름"
               value={form.gameName}
               onChange={handleChange}
-              className="border border-gray-300 p-3 w-full"
+              className="w-full p-4 rounded-lg border border-green-500 bg-black text-green-400 text-center text-xl shadow-inner cursor-text"
             />
-            <button onClick={() => removeField("gameName")} className="absolute right-3 top-3 text-red-500">X</button>
+            <button onClick={() => removeField("gameName")} className="absolute right-3 top-3 text-red-500 cursor-pointer">X</button>
           </div>
         )}
         {visibleFields.bossName && (
@@ -125,9 +146,9 @@ export default function TimerForm({ addTimer }) {
               placeholder="보스 이름"
               value={form.bossName}
               onChange={handleChange}
-              className="border border-gray-300 p-3 w-full"
+              className="w-full p-4 rounded-lg border border-green-500 bg-black text-green-400 text-center text-xl shadow-inner cursor-text"
             />
-            <button onClick={() => removeField("bossName")} className="absolute right-3 top-3 text-red-500">X</button>
+            <button onClick={() => removeField("bossName")} className="absolute right-3 top-3 text-red-500 cursor-pointer">X</button>
           </div>
         )}
         {visibleFields.respawnTimeHours && (
@@ -138,9 +159,9 @@ export default function TimerForm({ addTimer }) {
               placeholder="리젠 (시간)"
               value={form.respawnTimeHours}
               onChange={handleChange}
-              className="border border-gray-300 p-3 w-full"
+              className="w-full p-4 rounded-lg border border-green-500 bg-black text-green-400 text-center text-xl shadow-inner cursor-text"
             />
-            <button onClick={() => removeField("respawnTimeHours")} className="absolute right-3 top-3 text-red-500">X</button>
+            <button onClick={() => removeField("respawnTimeHours")} className="absolute right-3 top-3 text-red-500 cursor-pointer">X</button>
           </div>
         )}
         {visibleFields.respawnTimeMinutes && (
@@ -151,9 +172,9 @@ export default function TimerForm({ addTimer }) {
               placeholder="리젠 (분)"
               value={form.respawnTimeMinutes}
               onChange={handleChange}
-              className="border border-gray-300 p-3 w-full"
+              className="w-full p-4 rounded-lg border border-green-500 bg-black text-green-400 text-center text-xl shadow-inner cursor-text"
             />
-            <button onClick={() => removeField("respawnTimeMinutes")} className="absolute right-3 top-3 text-red-500">X</button>
+            <button onClick={() => removeField("respawnTimeMinutes")} className="absolute right-3 top-3 text-red-500 cursor-pointer">X</button>
           </div>
         )}
         {visibleFields.location && (
@@ -164,9 +185,9 @@ export default function TimerForm({ addTimer }) {
               placeholder="보스 위치 (선택)"
               value={form.location}
               onChange={handleChange}
-              className="border border-gray-300 p-3 w-full"
+              className="w-full p-4 rounded-lg border border-green-500 bg-black text-green-400 text-center text-xl shadow-inner cursor-text"
             />
-            <button onClick={() => removeField("location")} className="absolute right-3 top-3 text-red-500">X</button>
+            <button onClick={() => removeField("location")} className="absolute right-3 top-3 text-red-500 cursor-pointer">X</button>
           </div>
         )}
         {visibleFields.manualKillTime && (
@@ -174,22 +195,22 @@ export default function TimerForm({ addTimer }) {
             <input
               type="text"
               name="manualKillTime"
-              placeholder="처치시간을 입력해주세요 (예: 16:30)"
+              placeholder="처치시간 입력 (예: 16:30)"
               value={form.manualKillTime}
               onChange={handleChange}
-              className="border border-gray-300 p-3 w-full"
+              className="w-full p-4 rounded-lg border border-green-500 bg-black text-green-400 text-center text-xl shadow-inner cursor-text"
             />
-            <button onClick={() => removeField("manualKillTime")} className="absolute right-3 top-3 text-red-500">X</button>
+            <button onClick={() => removeField("manualKillTime")} className="absolute right-3 top-3 text-red-500 cursor-pointer">X</button>
           </div>
         )}
       </div>
-  
-      {/* ✅ 계산기 배치 버튼 (3 x 2) */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+
+      {/* 추가 버튼 영역 */}
+      <div className="grid grid-cols-3 gap-3 mt-6">
         {!visibleFields.gameName && (
           <button
             onClick={() => addField("gameName")}
-            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+            className="bg-black border border-green-500 text-green-400 font-mono p-3 shadow-inner hover:bg-green-700 cursor-pointer"
           >
             + 게임 이름
           </button>
@@ -197,7 +218,7 @@ export default function TimerForm({ addTimer }) {
         {!visibleFields.bossName && (
           <button
             onClick={() => addField("bossName")}
-            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+            className="bg-black border border-green-500 text-green-400 font-mono p-3 shadow-inner hover:bg-green-700 cursor-pointer"
           >
             + 보스 이름
           </button>
@@ -205,23 +226,23 @@ export default function TimerForm({ addTimer }) {
         {!visibleFields.respawnTimeHours && (
           <button
             onClick={() => addField("respawnTimeHours")}
-            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+            className="bg-black border border-green-500 text-green-400 font-mono p-3 shadow-inner hover:bg-green-700 cursor-pointer"
           >
-            + 젠 시간 (시간)
+            + 젠 (시간)
           </button>
         )}
         {!visibleFields.respawnTimeMinutes && (
           <button
             onClick={() => addField("respawnTimeMinutes")}
-            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+            className="bg-black border border-green-500 text-green-400 font-mono p-3 shadow-inner hover:bg-green-700 cursor-pointer"
           >
-            + 젠 시간 (분)
+            + 젠 (분)
           </button>
         )}
         {!visibleFields.location && (
           <button
             onClick={() => addField("location")}
-            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm hover:bg-gray-100"
+            className="bg-black border border-green-500 text-green-400 font-mono p-3 shadow-inner hover:bg-green-700 cursor-pointer"
           >
             + 보스 위치
           </button>
@@ -229,21 +250,20 @@ export default function TimerForm({ addTimer }) {
         {!visibleFields.manualKillTime && (
           <button
             onClick={() => addField("manualKillTime")}
-            className="bg-white border border-gray-400 text-gray-800 p-3 text-sm leading-tight hover:bg-gray-100"
+            className="bg-black border border-green-500 text-green-400 font-mono p-3 shadow-inner hover:bg-green-700 cursor-pointer"
           >
-            + 처치시간 입력
+            + 처치시간
           </button>
         )}
       </div>
-  
-      {/* ✅ 젠 타이머 추가 - 검은 버튼으로 강조 */}
+
+      {/* 등록 버튼 */}
       <button
         onClick={handleSubmit}
-        className="w-full bg-black text-white py-4 hover:opacity-90"
+        className="mt-8 w-full bg-gradient-to-r from-pink-500 to-red-500 text-white text-xl p-4 rounded-full shadow-lg hover:scale-105 transition cursor-pointer"
       >
-        젠 타이머 추가
+        🔥 젠 타이머 추가 🔥
       </button>
     </div>
   );
-  
 }
