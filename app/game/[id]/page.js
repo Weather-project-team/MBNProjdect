@@ -1,3 +1,4 @@
+import CommentContainer from "@/components/games/Comment/CommentContainer";
 import DetailButton from "@/components/games/DetailButton";
 import LikeButton from "@/components/games/LikeButton";
 import { getGamesDetail } from "@/lib/db";
@@ -34,15 +35,7 @@ export default async function DetailPage({ params }) {
         <DetailButton item={item} id={id} />
       </div>
 
-      <div>
-        <h1>댓글</h1>
-        <ul>
-          <li>댓글1</li>
-          <li>댓글1</li>
-          <li>댓글1</li>
-          <li>댓글1</li>
-        </ul>
-      </div>
+      <CommentContainer id={id} />
     </div>
   );
 }
