@@ -1,23 +1,33 @@
 "use client";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 export default function CommentForm({ postId }) {
   const [comment, setComment] = useState("");
+  const queryClient = useQueryClient();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
+  const mutation = useMutation({
+    mutationFn: async (newComment) => {
       const res = await fetch("/api/game/comment", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ comment, postId }),
+        body: JSON.stringify(newComment),
       });
-    } catch (e) {
-      console.error(e);
-    }
+      return res.json();
+    },
+    onSuccess: () => {
+      // ✅ 댓글 작성 성공 시 캐시 무효화 → 리스트 자동 리패치
+      queryClient.invalidateQueries(["comments", postId]);
+      setComment(""); // 입력창 비우기
+    },
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    mutation.mutate({ comment, postId });
   };
 
   return (
