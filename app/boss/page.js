@@ -29,47 +29,51 @@ export default function BossPage() {
     }
   };
 
-  useEffect(() => { fetchTimers(); }, []);
+  useEffect(() => {
+    fetchTimers();
+  }, []);
 
+  // ✅ 타이머 실시간 상태 업데이트 (젠 완료 / 곧 등장)
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      const updatedTimers = timers.map((timer) => {
-        if (timer.nextSpawnTime && timer.nextSpawnTime !== "제너리") {
-          const nextTime = new Date(timer.nextSpawnTime).getTime();
-          const timeRemaining = nextTime - now;
-          if (timeRemaining <= 0) return { ...timer, status: "제너리", isUpcoming: false };
-          else if (timeRemaining <= 5 * 60 * 1000) return { ...timer, isUpcoming: true, status: null };
-          else return { ...timer, isUpcoming: false, status: null };
-        }
-        return timer;
+      const updated = timers.map((timer) => {
+        if (!timer.nextSpawnTime || timer.nextSpawnTime === "젠 완료") return timer;
+        const next = new Date(timer.nextSpawnTime).getTime();
+        const remaining = next - now;
+        if (remaining <= 0) return { ...timer, status: "젠 완료", isUpcoming: false };
+        if (remaining <= 5 * 60 * 1000) return { ...timer, isUpcoming: true, status: null };
+        return { ...timer, isUpcoming: false, status: null };
       });
-      const sorted = [...updatedTimers].sort((a, b) => {
-        const aTime = a.nextSpawnTime && a.nextSpawnTime !== "제너리" ? new Date(a.nextSpawnTime).getTime() : Infinity;
-        const bTime = b.nextSpawnTime && b.nextSpawnTime !== "제너리" ? new Date(b.nextSpawnTime).getTime() : Infinity;
-        return aTime - bTime;
-      });
-      setTimers(sorted);
+      setTimers(updated);
     }, 1000);
     return () => clearInterval(interval);
   }, [timers]);
 
+  // ✅ 검색된 보스 모달 실시간 업데이트
   useEffect(() => {
     if (!searchResult) return;
     const interval = setInterval(() => {
+      const latest = timers.find(t => t._id === searchResult._id);
+      if (!latest) return;
+
       const now = new Date().getTime();
-      if (searchResult.nextSpawnTime && searchResult.nextSpawnTime !== "제너리") {
-        const nextTime = new Date(searchResult.nextSpawnTime).getTime();
-        const timeRemaining = nextTime - now;
-        let updatedStatus = null;
-        let isUpcoming = false;
-        if (timeRemaining <= 0) updatedStatus = "제너리";
-        else if (timeRemaining <= 5 * 60 * 1000) isUpcoming = true;
-        setSearchResult((prev) => ({ ...prev, status: updatedStatus, isUpcoming }));
-      }
+      const nextTime = new Date(latest.nextSpawnTime).getTime();
+      const timeRemaining = nextTime - now;
+
+      let updatedStatus = null;
+      let isUpcoming = false;
+      if (timeRemaining <= 0) updatedStatus = "젠 완료";
+      else if (timeRemaining <= 5 * 60 * 1000) isUpcoming = true;
+
+      setSearchResult({
+        ...latest,
+        status: updatedStatus,
+        isUpcoming,
+      });
     }, 1000);
     return () => clearInterval(interval);
-  }, [searchResult]);
+  }, [searchResult, timers]);
 
   useEffect(() => {
     const groupMap = timers.reduce((groups, timer) => {
@@ -165,7 +169,7 @@ export default function BossPage() {
         }
       }
     } catch (err) {
-      console.error("\u274c \uc218\uc815 \uc2e4\ud328:", err);
+      console.error("❌ 수정 실패:", err);
     }
   };
 
@@ -199,7 +203,6 @@ export default function BossPage() {
                 {game}
               </div>
             ))}
-
             <NextSpawnBoss timers={timers} />
 
             <div className="mt-6 bg-black p-4 border border-green-500 rounded-lg max-h-[300px] overflow-auto w-full cursor-default">
