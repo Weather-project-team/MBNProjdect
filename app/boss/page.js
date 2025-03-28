@@ -8,6 +8,7 @@ import EditModal from "./components/GroupModal/EditModal";
 import SearchFilter from "./components/SearchFilter";
 import GroupTimerCard from "./components/GroupModal/GroupTimerCard";
 import NextSpawnBoss from "./components/NextSpawnBoss";
+import { requestNotificationPermission, scheduleNotification } from "./components/GroupModal/useNotification";
 
 export default function BossPage() {
   const [timers, setTimers] = useState([]);
@@ -34,18 +35,18 @@ export default function BossPage() {
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const updatedTimers = timers.map((timer) => {
-        if (timer.nextSpawnTime && timer.nextSpawnTime !== "젠 완료") {
+        if (timer.nextSpawnTime && timer.nextSpawnTime !== "제너리") {
           const nextTime = new Date(timer.nextSpawnTime).getTime();
           const timeRemaining = nextTime - now;
-          if (timeRemaining <= 0) return { ...timer, status: "젠 완료", isUpcoming: false };
+          if (timeRemaining <= 0) return { ...timer, status: "제너리", isUpcoming: false };
           else if (timeRemaining <= 5 * 60 * 1000) return { ...timer, isUpcoming: true, status: null };
           else return { ...timer, isUpcoming: false, status: null };
         }
         return timer;
       });
       const sorted = [...updatedTimers].sort((a, b) => {
-        const aTime = a.nextSpawnTime && a.nextSpawnTime !== "젠 완료" ? new Date(a.nextSpawnTime).getTime() : Infinity;
-        const bTime = b.nextSpawnTime && b.nextSpawnTime !== "젠 완료" ? new Date(b.nextSpawnTime).getTime() : Infinity;
+        const aTime = a.nextSpawnTime && a.nextSpawnTime !== "제너리" ? new Date(a.nextSpawnTime).getTime() : Infinity;
+        const bTime = b.nextSpawnTime && b.nextSpawnTime !== "제너리" ? new Date(b.nextSpawnTime).getTime() : Infinity;
         return aTime - bTime;
       });
       setTimers(sorted);
@@ -57,12 +58,12 @@ export default function BossPage() {
     if (!searchResult) return;
     const interval = setInterval(() => {
       const now = new Date().getTime();
-      if (searchResult.nextSpawnTime && searchResult.nextSpawnTime !== "젠 완료") {
+      if (searchResult.nextSpawnTime && searchResult.nextSpawnTime !== "제너리") {
         const nextTime = new Date(searchResult.nextSpawnTime).getTime();
         const timeRemaining = nextTime - now;
         let updatedStatus = null;
         let isUpcoming = false;
-        if (timeRemaining <= 0) updatedStatus = "젠 완료";
+        if (timeRemaining <= 0) updatedStatus = "제너리";
         else if (timeRemaining <= 5 * 60 * 1000) isUpcoming = true;
         setSearchResult((prev) => ({ ...prev, status: updatedStatus, isUpcoming }));
       }
@@ -114,7 +115,19 @@ export default function BossPage() {
           updates: { killTime: now.toISOString(), nextSpawnTime: nextSpawnTime.toISOString() },
         }),
       });
-      if (res.ok) await fetchTimers();
+      if (res.ok) {
+        await fetchTimers();
+        if (searchResult && searchResult._id === timer._id) {
+          setSearchResult({
+            ...timer,
+            killTime: now.toISOString(),
+            nextSpawnTime: nextSpawnTime.toISOString(),
+            status: null,
+          });
+        }
+        requestNotificationPermission();
+        scheduleNotification(timer.bossName, nextSpawnTime.toISOString());
+      }
     } catch (err) {
       console.error("❌ 처치 실패:", err);
     }
@@ -127,7 +140,12 @@ export default function BossPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ timerId }),
       });
-      if (res.ok) await fetchTimers();
+      if (res.ok) {
+        await fetchTimers();
+        if (searchResult && searchResult._id === timerId) {
+          setSearchResult(null);
+        }
+      }
     } catch (err) {
       console.error("❌ 삭제 실패:", err);
     }
@@ -140,9 +158,14 @@ export default function BossPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ timerId, updates: newData }),
       });
-      if (res.ok) await fetchTimers();
+      if (res.ok) {
+        await fetchTimers();
+        if (searchResult && searchResult._id === timerId) {
+          setSearchResult((prev) => ({ ...prev, ...newData }));
+        }
+      }
     } catch (err) {
-      console.error("❌ 수정 실패:", err);
+      console.error("\u274c \uc218\uc815 \uc2e4\ud328:", err);
     }
   };
 
@@ -150,31 +173,21 @@ export default function BossPage() {
 
   return (
     <div className="bg-[#f5f5f5] min-h-screen py-8 flex justify-center">
-      {/* 좌측 광고 */}
       <div className="w-[200px] hidden lg:block p-4">
         <div className="bg-gray-300 h-[600px] border border-gray-400">광고 자리</div>
       </div>
-  
-      {/* 메인 컨텐츠 */}
+
       <div className="w-full max-w-7xl p-6 bg-white">
         <BossGuide />
-  
-        {/* 검색 필터 */}
         <div className="mt-6">
-          <SearchFilter
-            timers={timers}
-            setFiltered={setFilteredTimers}
-            resetSearch={() => setFilteredTimers([])}
-          />
+          <SearchFilter timers={timers} setFiltered={setFilteredTimers} resetSearch={() => setFilteredTimers([])} />
         </div>
-  
+
         <div className="flex gap-8 mt-8">
-          {/* 타이머 입력 폼 */}
           <div className="flex-[0.7] bg-white p-6">
             <TimerForm addTimer={addTimer} />
           </div>
-  
-          {/* 게임 그룹 + 검색 결과 */}
+
           <div className="flex-[0.3] bg-white p-6 ">
             <h2 className="text-xl font-bold mb-4">게임 그룹</h2>
             {Object.keys(groupedTimers).map((game) => (
@@ -186,11 +199,9 @@ export default function BossPage() {
                 {game}
               </div>
             ))}
-  
-            {/* 가장 먼저 젠되는 보스 */}
+
             <NextSpawnBoss timers={timers} />
-  
-            
+
             <div className="mt-6 bg-black p-4 border border-green-500 rounded-lg max-h-[300px] overflow-auto w-full cursor-default">
               {searchResult ? (
                 <>
@@ -227,13 +238,11 @@ export default function BossPage() {
           </div>
         </div>
       </div>
-  
-      {/* 우측 광고 */}
+
       <div className="w-[200px] hidden lg:block p-4">
         <div className="bg-gray-300 h-[600px] border border-gray-400">광고 자리</div>
       </div>
-  
-      {/* 그룹 모달 */}
+
       {selectedGroup && (
         <GroupModal
           key={selectedGroup}
@@ -246,8 +255,7 @@ export default function BossPage() {
           onEdit={openEditModal}
         />
       )}
-  
-      {/* 수정 모달 */}
+
       {editingTimer && (
         <EditModal
           timer={editingTimer}
@@ -256,5 +264,5 @@ export default function BossPage() {
         />
       )}
     </div>
-  );  
+  );
 }
