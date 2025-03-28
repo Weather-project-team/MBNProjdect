@@ -1,6 +1,5 @@
 "use client";
-import { useContext, useState, useEffect } from "react";
-import { SessionContext } from "@/components/UserSessionProvider";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -21,7 +20,6 @@ export default function SignupForm() {
 
   const cleanCustomDomain = customDomain.startsWith("@") ? customDomain.slice(1) : customDomain; // 맨 앞의 @ 제거
   const email = `${emailId}@${isCustom ? cleanCustomDomain : domain}`;
-  const { setSession } = useContext(SessionContext);
 
   useEffect(() => {
     if (!emailId || (isCustom && !customDomain)) {
@@ -89,16 +87,6 @@ export default function SignupForm() {
     if (res.ok) {
       alert("회원가입 성공!");
       await signIn("credentials", { email, password, redirect: false });
-    
-      setSession({
-        user: {
-          email,
-          name,
-          role: "USER",
-          provider: "credentials",
-          birthdate,
-        },
-      });
     
       router.push("/");
     }

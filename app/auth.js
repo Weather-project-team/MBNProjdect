@@ -28,7 +28,7 @@ export const { auth, handlers } = NextAuth({
         );
         if (!isValid) throw new Error("비밀번호가 틀렸습니다.");
 
-        return { id: user._id.toString(), email: user.email, name: user.name, role: user.role, };
+        return { id: user._id.toString(), email: user.email, name: user.name, role: user.role, birthdate: user.birthdate, };
       },
     }),
 
@@ -75,7 +75,6 @@ export const { auth, handlers } = NextAuth({
 
         return token;
       }
-
     
       // ✅ 2. 일반 로그인 처리
       if (user) {
@@ -84,6 +83,7 @@ export const { auth, handlers } = NextAuth({
         token.name = user.name;
         token.role = user.role || "USER";
         token.provider = "credentials";
+        token.birthdate = user.birthdate;
       }
     
       return token;
