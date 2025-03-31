@@ -68,3 +68,55 @@ export async function GET(request) {
     );
   }
 }
+
+export async function DELETE(request) {
+  await connectDB();
+
+  const session = await auth();
+  if (!session) {
+    return NextResponse.json(
+      { success: false, message: "로그인이 필요합니다." },
+      { status: 401 }
+    );
+  }
+
+  const body = await request.json();
+  const { id } = body;
+
+  if (!id) {
+    return NextResponse.json(
+      { success: false, message: "댓글 ID가 없습니다." },
+      { status: 400 }
+    );
+  }
+
+  // 🛡️ 댓글 조회
+  const comment = await Comment.findById(id);
+  if (!comment) {
+    return NextResponse.json(
+      { success: false, message: "댓글을 찾을 수 없습니다." },
+      { status: 404 }
+    );
+  }
+
+  // 🛡️ 작성자 확인
+  if (String(comment.author) !== session.user.id) {
+    return NextResponse.json(
+      { success: false, message: "본인만 삭제할 수 있습니다." },
+      { status: 403 }
+    );
+  }
+
+  // ✅ soft delete 처리
+  await Comment.updateOne(
+    { _id: id },
+    {
+      $set: {
+        isDeleted: true,
+        deletedAt: new Date(),
+      },
+    }
+  );
+
+  return NextResponse.json({ success: true, message: "삭제 완료" });
+}

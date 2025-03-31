@@ -33,15 +33,6 @@ export async function POST(request) {
       );
     }
 
-    // 3️⃣ 모델이 정상적으로 로드되었는지 확인
-    console.log("🔍 Game 모델 확인:", Game);
-    if (!Game) {
-      return NextResponse.json(
-        { success: false, message: "Game 모델이 존재하지 않습니다." },
-        { status: 500 }
-      );
-    }
-
     // 4️⃣ 새로운 문서 생성
     const newGame = new Game({
       title,
